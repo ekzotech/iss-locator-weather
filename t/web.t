@@ -49,5 +49,14 @@ $web->get_ok('/api/track')->status_is(200)->json_is('/points', [
   {observed_at => 1704067200, latitude => 48.7, longitude => 2.1},
   {observed_at => 1704067260, latitude => 48.85, longitude => 2.35},
 ]);
+$store->record({
+  observed_at => 1704067320, latitude => 48.85, longitude => 2.35, weather_status => 'available',
+  temperature_c => 0, cloud_cover => 0, weather_code => 0, weather_at => 1704067200,
+});
+$web->get_ok('/')->status_is(200)
+  ->text_is('.snapshot-temperature', '0 °C')
+  ->text_is('.snapshot-cloud', '0 %')
+  ->text_is('.snapshot-conditions', 'Ясно')
+  ->element_exists('.snapshot-metrics time[datetime="2024-01-01T00:00:00Z"]');
 
 done_testing;

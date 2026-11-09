@@ -5,5 +5,15 @@
     % my $display = $latest->{display};
     <p class="snapshot-coordinates"><%= $display->{coordinates} %></p>
     <time class="snapshot-time" datetime="<%= $display->{observed_iso} %>"><%= $display->{observed_utc} %></time>
+    % if ($latest->{weather_status} eq 'available') {
+      <div class="snapshot-weather">
+        <p class="snapshot-temperature"><%= $display->{temperature} %></p>
+        <p class="snapshot-conditions"><%= $display->{conditions} %></p>
+        <dl class="snapshot-metrics">
+          <div><dt>Облачность</dt><dd class="snapshot-cloud"><%= $display->{cloud_cover} %></dd></div>
+          <div><dt>Данные модели</dt><dd><time datetime="<%= $display->{weather_iso} %>"><%= $display->{weather_utc} %></time></dd></div>
+        </dl>
+      </div>
+    % }
   % }
 </section>
