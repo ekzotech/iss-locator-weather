@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Координаты Международной космической станции и погода под ней">
     <title><%= title %></title>
+    %= stylesheet '/tracker.css'
   </head>
   <body>
     <header class="masthead">
