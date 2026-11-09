@@ -53,6 +53,22 @@ sub startup {
     my $c = shift;
     $c->render(json => {observation => scalar $c->app->store->latest});
   });
+  $self->routes->get('/api/history' => sub {
+    my $c = shift;
+    my $limit = $c->param('limit') // 20;
+    my $before = $c->param('before');
+    return $c->render(status => 400, json => {error => 'limit must be an integer from 1 to 100'})
+      unless $limit =~ /\A[1-9][0-9]{0,2}\z/ && $limit <= 100;
+    return $c->render(status => 400, json => {error => 'before must be a Unix timestamp'})
+      if defined($before) && ($before !~ /\A[0-9]{1,12}\z/ || $before > 253402300799);
+    my $observations = $c->app->store->history($limit + 1, $before);
+    my $next;
+    if (@$observations > $limit) {
+      pop @$observations;
+      $next = $observations->[-1]{observed_at};
+    }
+    $c->render(json => {observations => $observations, next_before => $next});
+  });
 }
 
 1;
