@@ -39,4 +39,8 @@ for my $y (-1 .. 6) {
 }
 is_deeply \@mismatch, [], 'bounding box preserves exact classification throughout the sample grid';
 
+ok $land->contains(52.52, 13.405), 'Berlin is over continental land';
+ok !$land->contains(0, -30), 'the equatorial Atlantic is water';
+ok $land->contains(64.8, -18.2), 'central Iceland is over an island';
+
 done_testing;
