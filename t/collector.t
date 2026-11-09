@@ -38,4 +38,13 @@ is_deeply $app->store->latest, {
   weather_code => undef, weather_at => undef,
 }, 'a failed weather response cannot leave partial model data';
 
+my $last_observation = $app->store->latest;
+my $weather_requests = $state->{weather_requests};
+$state->{iss}{timestamp} += 60;
+$state->{iss_status} = 502;
+($inserted, $error) = await_p($app->collector->collect_p);
+like $error, qr/HTTP 502/, 'a coordinate outage rejects the cycle';
+is $state->{weather_requests}, $weather_requests, 'coordinate outage skips weather';
+is_deeply $app->store->latest, $last_observation, 'latest saved position survives a coordinate outage';
+
 done_testing;

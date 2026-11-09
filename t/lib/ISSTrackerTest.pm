@@ -22,7 +22,9 @@ sub new_mock_tracker {
     weather => {current => {temperature_2m => 0, cloud_cover => 25, weather_code => 1, time => 1704067200}},
     weather_requests => 0,
   };
-  $mock->routes->get('/iss' => sub { shift->render(json => $state->{iss}) });
+  $mock->routes->get('/iss' => sub {
+    shift->render(status => $state->{iss_status} // 200, json => $state->{iss});
+  });
   $mock->routes->get('/weather' => sub {
     my $c = shift;
     ++$state->{weather_requests};
