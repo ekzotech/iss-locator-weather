@@ -6,6 +6,7 @@
     <meta name="description" content="Координаты Международной космической станции и погода под ней">
     <title><%= title %></title>
     %= stylesheet '/tracker.css'
+    <script src="<%= url_for '/tracker.js' %>" defer></script>
   </head>
   <body>
     <header class="masthead">

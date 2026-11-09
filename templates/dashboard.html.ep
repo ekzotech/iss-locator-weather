@@ -1,10 +1,11 @@
 % layout 'default';
 % title 'Орбита МКС — положение и погода';
-<main class="dashboard" id="main">
+<main class="dashboard" id="main" data-dashboard-url="<%= url_for 'dashboard_data' %>">
   <header class="page-heading">
     <p class="eyebrow">МКС / Земля</p>
     <h1>Погода под МКС</h1>
     <p class="intro">Где сейчас проходит Международная космическая станция и какая погода в точке под ней.</p>
+    <p class="refresh-state empty-note" hidden>Связь с сервером прервалась. Показан последний загруженный снимок.</p>
   </header>
   <div class="overview">
     %= include 'map'
@@ -13,13 +14,9 @@
   <section id="history" class="history" aria-labelledby="history-title">
     <p class="eyebrow">Журнал наблюдений</p>
     <h2 id="history-title">История пролётов</h2>
-    % if (!@$observations) {
-      <p class="empty-note history-empty">Наблюдения появятся после первого пролёта.</p>
-    % }
+    <p class="empty-note history-empty"<%== @$observations ? ' hidden' : '' %>>Наблюдения появятся после первого пролёта.</p>
     <ol class="history-list">
-      % for my $observation (@$observations) {
-        %= include 'history_row', observation => $observation
-      % }
+      %= include 'history_rows', observations => $observations
     </ol>
   </section>
 </main>

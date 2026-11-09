@@ -1,0 +1,3 @@
+% for my $observation (@$observations) {
+  %= include 'history_row', observation => $observation
+% }

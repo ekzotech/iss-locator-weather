@@ -72,5 +72,10 @@ $web->get_ok('/')->status_is(200)
   ->element_exists('.history-row:first-child[data-observed-at="1704067380"]')
   ->element_exists('.history-row:nth-child(2)[data-observed-at="1704067320"]')
   ->text_is('.history-row:nth-child(2) .history-weather strong', '0 °C');
+$web->get_ok('/api/dashboard')->status_is(200)->header_is('Cache-Control', 'no-store')
+  ->json_like('/snapshot', qr/Над водой/)
+  ->json_like('/history_rows', qr/1704067380/)
+  ->json_like('/map_overlay', qr/class="map-marker"/)
+  ->json_is('/map_description', 'Последняя точка: 0.00°, -30.00°');
 
 done_testing;

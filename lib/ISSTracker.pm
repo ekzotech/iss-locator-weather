@@ -1,5 +1,6 @@
 package ISSTracker;
 use Mojo::Base 'Mojolicious';
+use utf8;
 use Mojo::File 'path';
 use Mojo::Home;
 use Mojo::SQLite;
@@ -54,23 +55,42 @@ sub startup {
     my ($c, $until) = @_;
     return $c->app->store->track_recent(TRACK_WINDOW, $until);
   });
+  $self->helper(dashboard_state => sub {
+    my $c = shift;
+    my @observations = map { view_observation($_) } @{$c->app->store->history(20)};
+    my $latest = $observations[0];
+    return {
+      latest => $latest,
+      observations => \@observations,
+      overlay => map_overlay($latest, $latest ? $c->track_points($latest->{observed_at}) : []),
+      map_description => $latest ? 'Последняя точка: ' . $latest->{display}{coordinates} : 'Последняя точка пока неизвестна.',
+    };
+  });
 
   $self->routes->get('/health' => sub {
     shift->render(json => {status => 'ok'});
   });
   $self->routes->get('/' => sub {
     my $c = shift;
-    my @observations = map { view_observation($_) } @{$c->app->store->history(20)};
     $c->render(
       template => 'dashboard',
-      latest => $observations[0],
-      observations => \@observations,
+      %{$c->dashboard_state},
       land_path => $c->app->land_path,
-      overlay => map_overlay($observations[0], @observations ? $c->track_points($observations[0]{observed_at}) : []),
       map_width => MAP_WIDTH,
       map_height => MAP_HEIGHT,
     );
   })->name('dashboard');
+  $self->routes->get('/api/dashboard' => sub {
+    my $c = shift;
+    my $state = $c->dashboard_state;
+    $c->res->headers->cache_control('no-store');
+    $c->render(json => {
+      snapshot => $c->render_to_string(template => 'snapshot', latest => $state->{latest})->to_string,
+      history_rows => $c->render_to_string(template => 'history_rows', observations => $state->{observations})->to_string,
+      map_overlay => $c->render_to_string(template => 'map_overlay', overlay => $state->{overlay})->to_string,
+      map_description => $state->{map_description},
+    });
+  })->name('dashboard_data');
   $self->routes->get('/api/latest' => sub {
     my $c = shift;
     $c->render(json => {observation => view_observation(scalar $c->app->store->latest)});

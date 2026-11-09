@@ -7,7 +7,7 @@
     <svg class="world-map" viewBox="0 0 <%= $map_width %> <%= $map_height %>"
       role="img" aria-labelledby="map-svg-title map-svg-description">
       <title id="map-svg-title">Карта мира и траектория МКС</title>
-      <desc id="map-svg-description"><%= $latest ? 'Последняя точка: ' . $latest->{display}{coordinates} : 'Последняя точка пока неизвестна.' %></desc>
+      <desc id="map-svg-description"><%= $map_description %></desc>
       <path class="map-grid" d="M120 0V360M240 0V360M360 0V360M480 0V360M600 0V360M0 60H720M0 120H720M0 180H720M0 240H720M0 300H720"/>
       <path class="map-land" fill-rule="evenodd" d="<%= $land_path %>"/>
       %= include 'map_overlay', overlay => $overlay
