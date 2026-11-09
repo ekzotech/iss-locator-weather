@@ -4,7 +4,7 @@ use warnings;
 use Exporter 'import';
 use List::Util 'min';
 
-our @EXPORT_OK = qw(distance_km project MAP_WIDTH MAP_HEIGHT);
+our @EXPORT_OK = qw(distance_km project track_segments MAP_WIDTH MAP_HEIGHT);
 use constant { MAP_WIDTH => 720, MAP_HEIGHT => 360 };
 
 my $radians_per_degree = atan2(0, -1) / 180;
@@ -23,6 +23,29 @@ sub distance_km {
 sub project {
   my ($latitude, $longitude) = @_;
   return [($longitude + 180) * MAP_WIDTH / 360, (90 - $latitude) * MAP_HEIGHT / 180];
+}
+
+sub track_segments {
+  my $points = shift;
+  return [] unless @$points;
+  my @projected = map { project(@$_{qw(latitude longitude)}) } @$points;
+  my @segments = ([$projected[0]]);
+  for my $i (1 .. $#projected) {
+    my ($previous, $next) = @projected[$i - 1, $i];
+    my ($x1, $y1) = @$previous;
+    my ($x2, $y2) = @$next;
+    if (abs($x2 - $x1) > MAP_WIDTH / 2) {
+      my $edge = $x1 > $x2 ? MAP_WIDTH : 0;
+      my $opposite = MAP_WIDTH - $edge;
+      my $span = $x2 + $edge - $opposite - $x1;
+      my $fraction = $span ? ($edge - $x1) / $span : 0.5;
+      my $y = $y1 + ($y2 - $y1) * $fraction;
+      push @{$segments[-1]}, [$edge, $y];
+      push @segments, [[$opposite, $y]];
+    }
+    push @{$segments[-1]}, $next;
+  }
+  return \@segments;
 }
 
 1;
