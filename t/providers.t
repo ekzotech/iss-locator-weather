@@ -17,6 +17,9 @@ is $ua->request_timeout, 12, 'total request timeout is bounded';
 my $mock = Mojolicious->new;
 my $position = {message => 'success', timestamp => 100, iss_position => {latitude => '-45.50', longitude => 0}};
 $mock->routes->get('/iss' => sub { shift->render(json => $position) });
+$mock->routes->get('/iss-error' => sub { shift->render(status => 500, text => 'Internal error') });
+$mock->routes->get('/iss-invalid' => sub { shift->render(text => '{') });
+$mock->routes->get('/iss-denied' => sub { shift->render(json => {%$position, message => 'failure'}) });
 my $http = Test::Mojo->new($mock);
 $providers->ua($http->ua)->iss_url('/iss');
 my ($result, $error);
@@ -26,7 +29,7 @@ is_deeply $result, {latitude => -45.5, longitude => 0, observed_at => 100},
   'ISS client normalizes string and numeric coordinates';
 eval { $providers->parse_iss({%$position, iss_position => {latitude => true, longitude => 0}}) };
 like $@, qr/Invalid ISS coordinates/, 'JSON boolean is not a numeric coordinate';
-is_deeply $providers->parse_iss({timestamp => '0', iss_position => {latitude => 90, longitude => -180}}),
+is_deeply $providers->parse_iss({%$position, timestamp => '0', iss_position => {latitude => 90, longitude => -180}}),
   {observed_at => 0, latitude => 90, longitude => -180}, 'coordinate and timestamp boundaries are accepted';
 for my $latitude (91, -91, 'NaN', 'Inf', '1e999') {
   eval { $providers->parse_iss({%$position, iss_position => {latitude => $latitude, longitude => 0}}) };
@@ -37,6 +40,17 @@ like $@, qr/Invalid ISS coordinates/, 'invalid longitude is rejected';
 for my $timestamp (-1, 0.5, 'Inf', 253402300800, undef) {
   eval { $providers->parse_iss({%$position, timestamp => $timestamp}) };
   like $@, qr/Invalid ISS timestamp/, 'invalid timestamp is rejected';
+}
+
+for my $case (
+  ['/iss-error', qr/HTTP 500/],
+  ['/iss-invalid', qr/invalid JSON/],
+  ['/iss-denied', qr/did not report success/],
+) {
+  my ($url, $expected) = @$case;
+  $error = undef;
+  $providers->iss_url($url)->iss_position_p->catch(sub { $error = shift })->wait;
+  like $error, $expected, "rejects $url";
 }
 
 done_testing;

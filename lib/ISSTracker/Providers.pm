@@ -12,12 +12,13 @@ has ua => sub {
 
 sub iss_position_p {
   my $self = shift;
-  return $self->ua->get_p($self->iss_url)->then(sub { return $self->parse_iss(shift->result->json) });
+  return $self->_get_json_p($self->iss_url)->then(sub { return $self->parse_iss(shift) });
 }
 
 sub parse_iss {
   my ($self, $payload) = @_;
-  die 'Invalid ISS position' unless ref($payload) eq 'HASH' && ref($payload->{iss_position}) eq 'HASH';
+  die 'Open Notify did not report success' unless ref($payload) eq 'HASH' && ($payload->{message} // '') eq 'success';
+  die 'Invalid ISS position' unless ref($payload->{iss_position}) eq 'HASH';
   my ($latitude, $longitude) = @{$payload->{iss_position}}{qw(latitude longitude)};
   die 'Invalid ISS coordinates' unless _finite_number($latitude) && _finite_number($longitude)
     && abs($latitude) <= 90 && abs($longitude) <= 180;
@@ -25,6 +26,17 @@ sub parse_iss {
   die 'Invalid ISS timestamp' unless _finite_number($timestamp)
     && $timestamp >= 0 && $timestamp <= 253402300799 && int($timestamp) == $timestamp;
   return {latitude => 0 + $latitude, longitude => 0 + $longitude, observed_at => 0 + $timestamp};
+}
+
+sub _get_json_p {
+  my ($self, $url) = @_;
+  return $self->ua->get_p($url)->then(sub {
+    my $response = shift->result;
+    die 'Provider returned HTTP ' . $response->code unless $response->is_success;
+    my $json = $response->json;
+    die 'Provider returned invalid JSON' unless ref($json) eq 'HASH';
+    return $json;
+  });
 }
 
 sub _finite_number {
