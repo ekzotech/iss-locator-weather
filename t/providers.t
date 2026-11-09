@@ -106,4 +106,18 @@ for my $case (
   like $error, $expected, "rejects $url instead of returning partial observations";
 }
 
+$providers->iss_url('/iss')->weather_url('/weather');
+$result = $error = $weather_query = undef;
+$providers->iss_position_p->then(sub {
+  my $point = shift;
+  return $providers->weather_p(@$point{qw(latitude longitude)})->then(sub { return {%$point, %{shift()}} });
+})->then(sub { $result = shift }, sub { $error = shift })->wait;
+is $error, undef, 'both provider calls complete without external services';
+is_deeply [@$weather_query{qw(latitude longitude)}], ['-45.5', '0'],
+  'the weather mock receives coordinates from the ISS mock';
+is_deeply $result, {
+  observed_at => 100, latitude => -45.5, longitude => 0,
+  temperature_c => -1.5, cloud_cover => 25, weather_code => 1, weather_at => 1704067200,
+}, 'the joint fixture retains both independent timestamps';
+
 done_testing;
