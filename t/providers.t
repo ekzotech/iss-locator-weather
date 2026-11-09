@@ -68,10 +68,14 @@ is_deeply $weather_query, {
   latitude => '-45.5', longitude => '0', current => 'temperature_2m,cloud_cover,weather_code',
   temperature_unit => 'celsius', timeformat => 'unixtime', timezone => 'UTC', cell_selection => 'nearest'
 }, 'weather request sends the complete point and model parameters';
-is_deeply $result, {temperature_c => -1.5, cloud_cover => 25}, 'temperature and cloud cover are normalized';
+is_deeply $result, {temperature_c => -1.5, cloud_cover => 25, weather_code => 1}, 'current weather is normalized';
 for my $cloud_cover (0, 100) {
-  is_deeply $providers->parse_weather({current => {temperature_2m => '0', cloud_cover => $cloud_cover}}),
-    {temperature_c => 0, cloud_cover => $cloud_cover}, "accepts $cloud_cover percent cloud cover";
+  is_deeply $providers->parse_weather({current => {temperature_2m => '0', cloud_cover => $cloud_cover, weather_code => '0'}}),
+    {temperature_c => 0, cloud_cover => $cloud_cover, weather_code => 0}, "accepts clear weather code and $cloud_cover percent cloud cover";
+}
+for my $code (undef, -1, 0.5, 100) {
+  eval { $providers->parse_weather({current => {%{$weather->{current}}, weather_code => $code}}) };
+  like $@, qr/Invalid Open-Meteo weather code/, 'invalid weather code is rejected';
 }
 for my $cloud_cover (-1, 101) {
   eval { $providers->parse_weather({current => {temperature_2m => 0, cloud_cover => $cloud_cover}}) };

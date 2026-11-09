@@ -30,11 +30,12 @@ sub weather_p {
 sub parse_weather {
   my ($self, $payload) = @_;
   die 'Invalid Open-Meteo current conditions' unless ref($payload) eq 'HASH' && ref($payload->{current}) eq 'HASH';
-  my ($temperature, $cloud_cover) = @{$payload->{current}}{qw(temperature_2m cloud_cover)};
+  my ($temperature, $cloud_cover, $code) = @{$payload->{current}}{qw(temperature_2m cloud_cover weather_code)};
   die 'Invalid Open-Meteo temperature' unless _finite_number($temperature);
   die 'Invalid Open-Meteo cloud cover'
     unless _finite_number($cloud_cover) && $cloud_cover >= 0 && $cloud_cover <= 100;
-  return {temperature_c => 0 + $temperature, cloud_cover => 0 + $cloud_cover};
+  die 'Invalid Open-Meteo weather code' unless _finite_number($code) && $code >= 0 && $code <= 99 && int($code) == $code;
+  return {temperature_c => 0 + $temperature, cloud_cover => 0 + $cloud_cover, weather_code => 0 + $code};
 }
 
 sub parse_iss {
