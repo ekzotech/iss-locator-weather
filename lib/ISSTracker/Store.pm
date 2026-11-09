@@ -18,4 +18,11 @@ sub latest {
   return shift->sqlite->db->query('SELECT * FROM observations ORDER BY observed_at DESC LIMIT 1')->hash;
 }
 
+sub history {
+  my ($self, $limit) = @_;
+  return $self->sqlite->db->query(
+    'SELECT * FROM observations ORDER BY observed_at DESC LIMIT ?', $limit
+  )->hashes->to_array;
+}
+
 1;

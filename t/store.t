@@ -26,5 +26,8 @@ eval { $store->record({%observation, observed_at => undef}) };
 like $@, qr/timestamp is required/, 'missing timestamp cannot create an implicit observation';
 $store->record({%observation, observed_at => 99});
 is_deeply scalar($store->latest), \%observation, 'latest is selected by observation time';
+$store->record({%observation, observed_at => 101});
+is_deeply [map { $_->{observed_at} } @{$store->history(2)}], [101, 100],
+  'history is newest first and respects the limit';
 
 done_testing;
