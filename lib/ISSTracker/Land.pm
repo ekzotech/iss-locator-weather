@@ -2,6 +2,7 @@ package ISSTracker::Land;
 use Mojo::Base -base;
 use Mojo::File 'path';
 use Mojo::JSON 'decode_json';
+use List::Util qw(min max);
 use POSIX 'isfinite';
 use Scalar::Util 'looks_like_number';
 
@@ -51,7 +52,7 @@ sub contains {
   for my $polygon (@{$self->polygons}) {
     my ($exterior, @holes) = @$polygon;
     next unless _ring_contains($exterior, $longitude, $latitude);
-    next if grep { _ring_contains($_, $longitude, $latitude) } @holes;
+    next if grep { _ring_contains($_, $longitude, $latitude) == 1 } @holes;
     return 1;
   }
   return 0;
@@ -63,11 +64,15 @@ sub _ring_contains {
   for my $i (1 .. $#$ring) {
     my ($x1, $y1) = @{$ring->[$i - 1]};
     my ($x2, $y2) = @{$ring->[$i]};
+    if ($x >= min($x1, $x2) && $x <= max($x1, $x2) && $y >= min($y1, $y2) && $y <= max($y1, $y2)) {
+      my $cross = ($x - $x1) * ($y2 - $y1) - ($y - $y1) * ($x2 - $x1);
+      return 2 if abs($cross) <= 1e-10;
+    }
     next if ($y1 > $y) == ($y2 > $y);
     my $crossing = $x1 + ($y - $y1) * ($x2 - $x1) / ($y2 - $y1);
     $inside = !$inside if $x < $crossing;
   }
-  return $inside;
+  return $inside ? 1 : 0;
 }
 
 1;

@@ -24,5 +24,10 @@ my $lake = [[2, 1], [4, 1], [4, 3], [2, 3], [2, 1]];
 my $with_lake = ISSTracker::Land->new(polygons => [[$rectangle, $lake]]);
 ok !$with_lake->contains(2, 3), 'an interior hole is water';
 ok $with_lake->contains(2, 8), 'the area outside the hole is still land';
+ok $with_lake->contains(2, 4), 'the shore of an interior hole is land';
+ok $region->contains(5, 10), 'a polygon vertex is land';
+ok $region->contains(5, 8), 'a point on an exterior edge is land';
+my $duplicate_vertex = ISSTracker::Land->new(polygons => [[[ [0, 0], @$rectangle ]]]);
+ok !$duplicate_vertex->contains(8, 2), 'a zero-length edge does not classify unrelated points';
 
 done_testing;
