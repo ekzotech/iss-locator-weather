@@ -26,4 +26,16 @@ is $error, undef, 'collection succeeds over water';
 is $app->store->latest->{weather_status}, 'water', 'the ocean position is recorded';
 is $state->{weather_requests}, 1, 'the water cycle skips the weather endpoint';
 
+$state->{iss}{timestamp} += 60;
+$state->{iss}{iss_position} = {latitude => '48.85', longitude => '2.35'};
+$state->{weather_status} = 503;
+($inserted, $error) = await_p($app->collector->collect_p);
+is $error, undef, 'weather failure does not reject the collection cycle';
+is $inserted, 1, 'position is still inserted during a weather outage';
+is_deeply $app->store->latest, {
+  observed_at => 1704067380, latitude => 48.85, longitude => 2.35,
+  weather_status => 'unavailable', temperature_c => undef, cloud_cover => undef,
+  weather_code => undef, weather_at => undef,
+}, 'a failed weather response cannot leave partial model data';
+
 done_testing;

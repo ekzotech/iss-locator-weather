@@ -11,8 +11,10 @@ sub collect_p {
     return $self->store->record({%$point, weather_status => 'water'}) unless $self->land->contains(@coordinates);
     return $self->providers->weather_p(@coordinates)->then(sub {
       my $weather = shift;
-      return $self->store->record({%$point, %$weather, weather_status => 'available'});
-    });
+      return {%$point, %$weather, weather_status => 'available'};
+    }, sub {
+      return {%$point, weather_status => 'unavailable'};
+    })->then(sub { return $self->store->record(shift) });
   });
 }
 

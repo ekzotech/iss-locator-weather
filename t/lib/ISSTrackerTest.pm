@@ -24,8 +24,9 @@ sub new_mock_tracker {
   };
   $mock->routes->get('/iss' => sub { shift->render(json => $state->{iss}) });
   $mock->routes->get('/weather' => sub {
+    my $c = shift;
     ++$state->{weather_requests};
-    shift->render(json => $state->{weather});
+    $c->render(status => $state->{weather_status} // 200, json => $state->{weather});
   });
   $tracker->app->providers->ua(Test::Mojo->new($mock)->ua)->iss_url('/iss')->weather_url('/weather');
   return ($tracker, $dir, $state);
