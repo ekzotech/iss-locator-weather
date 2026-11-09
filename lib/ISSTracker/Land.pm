@@ -7,6 +7,15 @@ use POSIX 'isfinite';
 use Scalar::Util 'looks_like_number';
 
 has polygons => sub { [] };
+has _index => sub {
+  my $self = shift;
+  return [map {
+    my $polygon = $_;
+    my @longitudes = map { $_->[0] } @{$polygon->[0]};
+    my @latitudes = map { $_->[1] } @{$polygon->[0]};
+    [$polygon, min(@longitudes), max(@longitudes), min(@latitudes), max(@latitudes)];
+  } @{$self->polygons}];
+};
 
 sub from_file {
   my ($class, $filename) = @_;
@@ -49,7 +58,9 @@ sub _valid_ring {
 
 sub contains {
   my ($self, $latitude, $longitude) = @_;
-  for my $polygon (@{$self->polygons}) {
+  for my $entry (@{$self->_index}) {
+    my ($polygon, $west, $east, $south, $north) = @$entry;
+    next if $longitude < $west || $longitude > $east || $latitude < $south || $latitude > $north;
     my ($exterior, @holes) = @$polygon;
     next unless _ring_contains($exterior, $longitude, $latitude);
     next if grep { _ring_contains($_, $longitude, $latitude) == 1 } @holes;

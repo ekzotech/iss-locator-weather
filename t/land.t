@@ -30,4 +30,13 @@ ok $region->contains(5, 8), 'a point on an exterior edge is land';
 my $duplicate_vertex = ISSTracker::Land->new(polygons => [[[ [0, 0], @$rectangle ]]]);
 ok !$duplicate_vertex->contains(8, 2), 'a zero-length edge does not classify unrelated points';
 
+my @mismatch;
+for my $y (-1 .. 6) {
+  for my $x (-1 .. 11) {
+    my $expected = $x >= 0 && $x <= 10 && $y >= 0 && $y <= 5 && !($x > 2 && $x < 4 && $y > 1 && $y < 3);
+    push @mismatch, [$x, $y] if $with_lake->contains($y, $x) != ($expected ? 1 : 0);
+  }
+}
+is_deeply \@mismatch, [], 'bounding box preserves exact classification throughout the sample grid';
+
 done_testing;
