@@ -35,4 +35,13 @@ is $weather_status->(), 'water', 'water status is preserved';
 eval { $first_db->query('UPDATE observations SET weather_status = ? WHERE observed_at = 100', 'unknown') };
 like $@, qr/CHECK constraint failed/, 'unknown weather status is rejected';
 
+$first_db->query(q{
+  UPDATE observations
+  SET weather_status = 'available', temperature_c = 0, cloud_cover = 0, weather_code = 0, weather_at = 90
+  WHERE observed_at = 100
+});
+is_deeply $first_db->query(q{
+  SELECT temperature_c, cloud_cover, weather_code, weather_at FROM observations WHERE observed_at = 100
+})->array, [0, 0, 0, 90], 'weather zeros and model timestamp are stored';
+
 done_testing;

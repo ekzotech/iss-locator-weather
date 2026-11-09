@@ -33,3 +33,15 @@ ALTER TABLE observations ADD COLUMN weather_status TEXT NOT NULL DEFAULT 'unavai
 
 -- 3 down
 ALTER TABLE observations DROP COLUMN weather_status;
+
+-- 4 up
+ALTER TABLE observations ADD COLUMN temperature_c REAL;
+ALTER TABLE observations ADD COLUMN cloud_cover INTEGER CHECK (cloud_cover BETWEEN 0 AND 100);
+ALTER TABLE observations ADD COLUMN weather_code INTEGER;
+ALTER TABLE observations ADD COLUMN weather_at INTEGER;
+
+-- 4 down
+ALTER TABLE observations DROP COLUMN weather_at;
+ALTER TABLE observations DROP COLUMN weather_code;
+ALTER TABLE observations DROP COLUMN cloud_cover;
+ALTER TABLE observations DROP COLUMN temperature_c;
