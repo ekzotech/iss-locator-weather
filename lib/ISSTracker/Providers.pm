@@ -1,10 +1,12 @@
 package ISSTracker::Providers;
 use Mojo::Base -base;
 use Mojo::UserAgent;
+use Mojo::URL;
 use Scalar::Util 'looks_like_number';
 use POSIX 'isfinite';
 
 has 'iss_url';
+has 'weather_url';
 
 has ua => sub {
   return Mojo::UserAgent->new(connect_timeout => 5, inactivity_timeout => 8, request_timeout => 12);
@@ -13,6 +15,16 @@ has ua => sub {
 sub iss_position_p {
   my $self = shift;
   return $self->_get_json_p($self->iss_url)->then(sub { return $self->parse_iss(shift) });
+}
+
+sub weather_p {
+  my ($self, $latitude, $longitude) = @_;
+  my $url = Mojo::URL->new($self->weather_url);
+  $url->query->merge(
+    latitude => $latitude, longitude => $longitude, current => 'temperature_2m,cloud_cover,weather_code',
+    temperature_unit => 'celsius', timeformat => 'unixtime', timezone => 'UTC', cell_selection => 'nearest'
+  );
+  return $self->_get_json_p($url);
 }
 
 sub parse_iss {

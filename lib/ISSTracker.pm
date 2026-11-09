@@ -18,7 +18,10 @@ has sqlite => sub {
   return $sqlite;
 };
 has store => sub { ISSTracker::Store->new(sqlite => shift->sqlite) };
-has providers => sub { ISSTracker::Providers->new(iss_url => shift->config->{iss_url}) };
+has providers => sub {
+  my $config = shift->config;
+  return ISSTracker::Providers->new(iss_url => $config->{iss_url}, weather_url => $config->{weather_url});
+};
 
 sub startup {
   my $self = shift;

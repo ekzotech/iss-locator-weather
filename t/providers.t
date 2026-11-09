@@ -20,6 +20,13 @@ $mock->routes->get('/iss' => sub { shift->render(json => $position) });
 $mock->routes->get('/iss-error' => sub { shift->render(status => 500, text => 'Internal error') });
 $mock->routes->get('/iss-invalid' => sub { shift->render(text => '{') });
 $mock->routes->get('/iss-denied' => sub { shift->render(json => {%$position, message => 'failure'}) });
+my $weather_query;
+my $weather = {current => {temperature_2m => -1.5, cloud_cover => 25, weather_code => 1, time => 90}};
+$mock->routes->get('/weather' => sub {
+  my $c = shift;
+  $weather_query = $c->req->url->query->to_hash;
+  $c->render(json => $weather);
+});
 my $http = Test::Mojo->new($mock);
 $providers->ua($http->ua)->iss_url('/iss');
 my ($result, $error);
@@ -52,5 +59,15 @@ for my $case (
   $providers->iss_url($url)->iss_position_p->catch(sub { $error = shift })->wait;
   like $error, $expected, "rejects $url";
 }
+
+$result = $error = undef;
+$providers->weather_url('/weather')->weather_p(-45.5, 0)
+  ->then(sub { $result = shift }, sub { $error = shift })->wait;
+is $error, undef, 'local weather request succeeds';
+is_deeply $weather_query, {
+  latitude => '-45.5', longitude => '0', current => 'temperature_2m,cloud_cover,weather_code',
+  temperature_unit => 'celsius', timeformat => 'unixtime', timezone => 'UTC', cell_selection => 'nearest'
+}, 'weather request sends the complete point and model parameters';
+is_deeply $result, $weather, 'weather response is received';
 
 done_testing;
