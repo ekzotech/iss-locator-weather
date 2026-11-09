@@ -11,6 +11,12 @@ my $web;
 ($web, $dir) = new_tracker();
 my $store = $web->app->store;
 
+$web->get_ok('/')->status_is(200)
+  ->element_exists('html[lang="ru"]')
+  ->element_exists('meta[name="viewport"]')
+  ->text_is('main h1', 'Погода под МКС')
+  ->element_exists('body > footer');
+
 $web->get_ok('/api/latest')->status_is(200)->json_is({observation => undef});
 $web->get_ok('/api/track')->status_is(200)->json_is({points => []});
 $store->record({observed_at => 1704067260, latitude => 48.85, longitude => 2.35, weather_status => 'unavailable'});

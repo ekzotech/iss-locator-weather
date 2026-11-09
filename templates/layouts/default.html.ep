@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Координаты Международной космической станции и погода под ней">
+    <title><%= title %></title>
+  </head>
+  <body>
+    <header class="masthead">
+      <a class="wordmark" href="/">Орбита МКС</a>
+      <span class="masthead-note">Положение и погода</span>
+    </header>
+    <%= content %>
+    <footer class="site-footer">
+      <span>Орбита МКС</span>
+      <span>Open Notify · Open-Meteo</span>
+    </footer>
+  </body>
+</html>
