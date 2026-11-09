@@ -22,10 +22,13 @@ use Test::More;
   package Local::Collector;
   use Mojo::Base -base;
   has calls => 0;
+  has 'pending';
   sub collect_p {
     my $self = shift;
     $self->calls($self->calls + 1);
-    return Mojo::Promise->resolve(1);
+    my $pending = Mojo::Promise->new;
+    $self->pending($pending);
+    return $pending;
   }
 }
 
@@ -35,7 +38,14 @@ my $runner = ISSTracker::Runner->new(loop => $timer, collector => $collector, lo
 is $runner->start, 'timer', 'collector installs its timer';
 is $collector->calls, 1, 'first cycle starts immediately';
 is $timer->interval, 60, 'future cycles are scheduled once a minute';
-$timer->callback->()->wait;
+is $runner->start, 'timer', 'starting again reuses the existing timer';
+my $first_cycle = $timer->callback->();
+is $collector->calls, 1, 'timer tick skips a cycle while the previous one is in flight';
+$collector->pending->resolve(1);
+$first_cycle->wait;
+my $second_cycle = $timer->callback->();
 is $collector->calls, 2, 'timer starts the next collection cycle';
+$collector->pending->resolve(1);
+$second_cycle->wait;
 
 done_testing;
