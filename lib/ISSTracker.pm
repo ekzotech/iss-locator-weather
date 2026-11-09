@@ -16,6 +16,10 @@ sub startup {
     : $root->child('var', 'observations.sqlite')->to_string;
   $self->config->{iss_url} = $ENV{ISS_TRACKER_ISS_URL} || 'http://api.open-notify.org/iss-now.json';
   $self->config->{weather_url} = $ENV{ISS_TRACKER_WEATHER_URL} || 'https://api.open-meteo.com/v1/forecast';
+
+  $self->routes->get('/health' => sub {
+    shift->render(json => {status => 'ok'});
+  });
 }
 
 1;
