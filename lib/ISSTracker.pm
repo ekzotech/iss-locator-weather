@@ -55,7 +55,12 @@ sub startup {
   });
   $self->routes->get('/' => sub {
     my $c = shift;
-    $c->render(template => 'dashboard', latest => view_observation(scalar $c->app->store->latest));
+    my @observations = map { view_observation($_) } @{$c->app->store->history(20)};
+    $c->render(
+      template => 'dashboard',
+      latest => $observations[0],
+      observations => \@observations,
+    );
   })->name('dashboard');
   $self->routes->get('/api/latest' => sub {
     my $c = shift;

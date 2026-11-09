@@ -9,4 +9,16 @@
   <div class="overview">
     %= include 'snapshot', latest => $latest
   </div>
+  <section id="history" class="history" aria-labelledby="history-title">
+    <p class="eyebrow">Журнал наблюдений</p>
+    <h2 id="history-title">История пролётов</h2>
+    % if (!@$observations) {
+      <p class="empty-note history-empty">Наблюдения появятся после первого пролёта.</p>
+    % }
+    <ol class="history-list">
+      % for my $observation (@$observations) {
+        %= include 'history_row', observation => $observation
+      % }
+    </ol>
+  </section>
 </main>

@@ -16,6 +16,7 @@ $web->get_ok('/')->status_is(200)
   ->element_exists('meta[name="viewport"]')
   ->text_is('main h1', 'Погода под МКС')
   ->text_is('.status--waiting', 'Ожидаем данные')
+  ->element_exists('.history-empty')
   ->element_exists('body > footer');
 
 $web->get_ok('/api/latest')->status_is(200)->json_is({observation => undef});
@@ -63,6 +64,9 @@ $web->get_ok('/')->status_is(200)
 $store->record({observed_at => 1704067380, latitude => 0, longitude => -30, weather_status => 'water'});
 $web->get_ok('/')->status_is(200)
   ->text_is('.status--water', 'Над водой')
-  ->element_exists_not('.snapshot-temperature');
+  ->element_exists_not('.snapshot-temperature')
+  ->element_exists('.history-row:first-child[data-observed-at="1704067380"]')
+  ->element_exists('.history-row:nth-child(2)[data-observed-at="1704067320"]')
+  ->text_is('.history-row:nth-child(2) .history-weather strong', '0 °C');
 
 done_testing;

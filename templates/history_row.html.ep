@@ -1,0 +1,14 @@
+% my $display = $observation->{display};
+<li class="history-row" data-observed-at="<%= $observation->{observed_at} %>">
+  <div class="history-position">
+    <time datetime="<%= $display->{observed_iso} %>"><%= $display->{observed_utc} %></time>
+    <span class="history-coordinates"><%= $display->{coordinates} %></span>
+  </div>
+  % if ($observation->{weather_status} eq 'available') {
+    <div class="history-weather">
+      <strong><%= $display->{temperature} %></strong>
+      <span><%= $display->{conditions} %> · облачность <%= $display->{cloud_cover} %></span>
+    </div>
+  % }
+  <span class="status status--<%= $observation->{weather_status} %>"><%= $display->{status} %></span>
+</li>
