@@ -8,7 +8,7 @@
   </head>
   <body>
     <header class="masthead">
-      <a class="wordmark" href="/">Орбита МКС</a>
+      <a class="wordmark" href="<%= url_for 'dashboard' %>">Орбита МКС</a>
       <span class="masthead-note">Положение и погода</span>
     </header>
     <%= content %>

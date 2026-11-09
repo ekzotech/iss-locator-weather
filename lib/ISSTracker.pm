@@ -53,7 +53,10 @@ sub startup {
   $self->routes->get('/health' => sub {
     shift->render(json => {status => 'ok'});
   });
-  $self->routes->get('/' => sub { shift->render(template => 'dashboard') });
+  $self->routes->get('/' => sub {
+    my $c = shift;
+    $c->render(template => 'dashboard', latest => view_observation(scalar $c->app->store->latest));
+  })->name('dashboard');
   $self->routes->get('/api/latest' => sub {
     my $c = shift;
     $c->render(json => {observation => view_observation(scalar $c->app->store->latest)});
