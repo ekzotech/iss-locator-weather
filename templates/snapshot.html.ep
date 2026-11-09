@@ -3,6 +3,7 @@
   <h2 id="snapshot-title">Последний пролёт</h2>
   % if ($latest) {
     % my $display = $latest->{display};
+    <p class="status status--<%= $latest->{weather_status} %>"><%= $display->{status} %></p>
     <p class="snapshot-coordinates"><%= $display->{coordinates} %></p>
     <time class="snapshot-time" datetime="<%= $display->{observed_iso} %>"><%= $display->{observed_utc} %></time>
     % if ($latest->{weather_status} eq 'available') {
@@ -14,6 +15,13 @@
           <div><dt>Данные модели</dt><dd><time datetime="<%= $display->{weather_iso} %>"><%= $display->{weather_utc} %></time></dd></div>
         </dl>
       </div>
+    % } elsif ($latest->{weather_status} eq 'water') {
+      <p class="empty-note">Станция над водой. Модель погоды для этой точки не запрашивалась.</p>
+    % } else {
+      <p class="empty-note">Координаты сохранены. Погодные данные для этой точки получить не удалось.</p>
     % }
+  % } else {
+    <p class="status status--waiting">Ожидаем данные</p>
+    <p class="empty-note">Первый снимок появится после запуска сборщика.</p>
   % }
 </section>

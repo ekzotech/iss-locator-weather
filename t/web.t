@@ -15,6 +15,7 @@ $web->get_ok('/')->status_is(200)
   ->element_exists('html[lang="ru"]')
   ->element_exists('meta[name="viewport"]')
   ->text_is('main h1', 'Погода под МКС')
+  ->text_is('.status--waiting', 'Ожидаем данные')
   ->element_exists('body > footer');
 
 $web->get_ok('/api/latest')->status_is(200)->json_is({observation => undef});
@@ -22,6 +23,7 @@ $web->get_ok('/api/track')->status_is(200)->json_is({points => []});
 $store->record({observed_at => 1704067260, latitude => 48.85, longitude => 2.35, weather_status => 'unavailable'});
 $web->get_ok('/')->status_is(200)
   ->text_is('#snapshot h2', 'Последний пролёт')
+  ->text_is('.status--unavailable', 'Погода недоступна')
   ->text_is('.snapshot-coordinates', '48.85°, 2.35°')
   ->element_exists('.snapshot-time[datetime="2024-01-01T00:01:00Z"]');
 $web->get_ok('/api/latest')->status_is(200)
@@ -58,5 +60,9 @@ $web->get_ok('/')->status_is(200)
   ->text_is('.snapshot-cloud', '0 %')
   ->text_is('.snapshot-conditions', 'Ясно')
   ->element_exists('.snapshot-metrics time[datetime="2024-01-01T00:00:00Z"]');
+$store->record({observed_at => 1704067380, latitude => 0, longitude => -30, weather_status => 'water'});
+$web->get_ok('/')->status_is(200)
+  ->text_is('.status--water', 'Над водой')
+  ->element_exists_not('.snapshot-temperature');
 
 done_testing;
