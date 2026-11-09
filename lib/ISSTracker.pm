@@ -6,6 +6,7 @@ use Mojo::SQLite;
 use ISSTracker::Store;
 use ISSTracker::Providers;
 use ISSTracker::Land;
+use ISSTracker::Collector;
 
 my $root = path(__FILE__)->to_abs->dirname->dirname;
 
@@ -24,6 +25,10 @@ has providers => sub {
   return ISSTracker::Providers->new(iss_url => $config->{iss_url}, weather_url => $config->{weather_url});
 };
 has land => sub { ISSTracker::Land->from_file($root->child('data', 'ne_110m_land.geojson')) };
+has collector => sub {
+  my $self = shift;
+  return ISSTracker::Collector->new(providers => $self->providers, store => $self->store);
+};
 
 sub startup {
   my $self = shift;
