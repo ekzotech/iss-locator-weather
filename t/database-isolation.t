@@ -17,4 +17,13 @@ $first_db->query('INSERT INTO observations (observed_at, latitude, longitude) VA
 is $first_db->query('SELECT latitude FROM observations')->array->[0], 45, 'first database sees its record';
 is $second_db->query('SELECT COUNT(*) FROM observations')->array->[0], 0, 'second database remains empty';
 
+my $insert = 'INSERT INTO observations (observed_at, latitude, longitude) VALUES (?, ?, ?)';
+$first_db->query($insert, 101, -90, 180);
+for my $coordinates ([91, 0], [0, -181], ['invalid', 0]) {
+  eval { $first_db->query($insert, 102, @$coordinates) };
+  like $@, qr/coordinates out of range/, "invalid coordinates @$coordinates are rejected";
+}
+eval { $first_db->query('UPDATE observations SET longitude = 181 WHERE observed_at = 100') };
+like $@, qr/coordinates out of range/, 'invalid update is rejected';
+
 done_testing;
