@@ -6,7 +6,8 @@ use Exporter 'import';
 use POSIX 'strftime';
 use ISSTracker::Weather 'weather_label';
 
-our @EXPORT_OK = qw(view_observation);
+our @EXPORT_OK = qw(view_observation is_stale);
+use constant STALE_AFTER => 180;
 
 my %status_label = (
   available => 'Над сушей',
@@ -33,6 +34,11 @@ sub view_observation {
       cloud_cover => defined($cloud_cover) ? sprintf('%g %%', $cloud_cover) : undef,
     },
   };
+}
+
+sub is_stale {
+  my ($observed_at, $now) = @_;
+  return defined($observed_at) && $now - $observed_at >= STALE_AFTER;
 }
 
 sub _iso_time {

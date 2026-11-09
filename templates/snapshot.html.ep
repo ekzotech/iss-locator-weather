@@ -3,7 +3,12 @@
   <h2 id="snapshot-title">Последний пролёт</h2>
   % if ($latest) {
     % my $display = $latest->{display};
-    <p class="status status--<%= $latest->{weather_status} %>"><%= $display->{status} %></p>
+    <div class="snapshot-statuses">
+      <p class="status status--<%= $latest->{weather_status} %>"><%= $display->{status} %></p>
+      % if ($stale) {
+        <p class="status status--stale">Данные устарели</p>
+      % }
+    </div>
     <p class="snapshot-coordinates"><%= $display->{coordinates} %></p>
     <time class="snapshot-time" datetime="<%= $display->{observed_iso} %>"><%= $display->{observed_utc} %></time>
     % if ($latest->{weather_status} eq 'available') {

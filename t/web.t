@@ -4,12 +4,16 @@ use utf8;
 use FindBin;
 use lib "$FindBin::Bin/../lib", "$FindBin::Bin/lib";
 use ISSTrackerTest 'new_tracker';
+use ISSTracker::View 'is_stale';
 use Test::More;
 
 my $dir;
 my $web;
 ($web, $dir) = new_tracker();
 my $store = $web->app->store;
+ok !is_stale(100, 279), 'position is fresh just before the threshold';
+ok is_stale(100, 280), 'position is stale at the three-minute threshold';
+ok !is_stale(undef, 280), 'missing position is waiting instead of stale';
 
 $web->get_ok('/')->status_is(200)
   ->element_exists('html[lang="ru"]')
@@ -26,6 +30,7 @@ $store->record({observed_at => 1704067260, latitude => 48.85, longitude => 2.35,
 $web->get_ok('/')->status_is(200)
   ->text_is('#snapshot h2', 'Последний пролёт')
   ->text_is('.status--unavailable', 'Погода недоступна')
+  ->text_is('.status--stale', 'Данные устарели')
   ->text_is('.snapshot-coordinates', '48.85°, 2.35°')
   ->element_exists('.map-marker[cx="364.70"][cy="82.30"]')
   ->text_is('#map-svg-description', 'Последняя точка: 48.85°, 2.35°')
@@ -76,6 +81,7 @@ $web->get_ok('/')->status_is(200)
   ->text_is('.history-row:nth-child(2) .history-weather strong', '0 °C');
 $web->get_ok('/api/dashboard')->status_is(200)->header_is('Cache-Control', 'no-store')
   ->json_like('/snapshot', qr/Над водой/)
+  ->json_like('/snapshot', qr/Данные устарели/)
   ->json_like('/history_rows', qr/1704067380/)
   ->json_like('/map_overlay', qr/class="map-marker"/)
   ->json_is('/map_description', 'Последняя точка: 0.00°, -30.00°');

@@ -9,7 +9,7 @@
   </header>
   <div class="overview">
     %= include 'map'
-    %= include 'snapshot', latest => $latest
+    %= include 'snapshot', latest => $latest, stale => $stale
   </div>
   <section id="history" class="history" aria-labelledby="history-title">
     <p class="eyebrow">Журнал наблюдений</p>

@@ -113,6 +113,8 @@ h2 { font-size: clamp(1.65rem, 5.5vw, 2.35rem); }
 .status--available { background: var(--sage); color: var(--sage-ink); }
 .status--water { background: var(--water); color: var(--water-ink); }
 .snapshot .status { margin-block: 0.85rem 0.7rem; }
+.snapshot-statuses { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-block: 0.85rem 0.7rem; }
+.snapshot-statuses .status { margin: 0; }
 
 .snapshot-coordinates {
   font: 600 1.05rem/1.4 var(--mono);

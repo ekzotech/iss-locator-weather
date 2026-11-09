@@ -8,7 +8,7 @@ use ISSTracker::Store;
 use ISSTracker::Providers;
 use ISSTracker::Land;
 use ISSTracker::Collector;
-use ISSTracker::View 'view_observation';
+use ISSTracker::View qw(view_observation is_stale);
 use ISSTracker::Map qw(land_svg_path map_overlay MAP_WIDTH MAP_HEIGHT);
 
 use constant TRACK_WINDOW => 2 * 60 * 60;
@@ -72,6 +72,7 @@ sub startup {
     return {
       %$page,
       latest => $latest,
+      stale => $latest && is_stale($latest->{observed_at}, time),
       overlay => map_overlay($latest, $latest ? $c->track_points($latest->{observed_at}) : []),
       map_description => $latest ? 'Последняя точка: ' . $latest->{display}{coordinates} : 'Последняя точка пока неизвестна.',
     };
@@ -95,7 +96,7 @@ sub startup {
     my $state = $c->dashboard_state;
     $c->res->headers->cache_control('no-store');
     $c->render(json => {
-      snapshot => $c->render_to_string(template => 'snapshot', latest => $state->{latest})->to_string,
+      snapshot => $c->render_to_string(template => 'snapshot', latest => $state->{latest}, stale => $state->{stale})->to_string,
       history_rows => $c->render_to_string(template => 'history_rows', observations => $state->{observations})->to_string,
       map_overlay => $c->render_to_string(template => 'map_overlay', overlay => $state->{overlay})->to_string,
       map_description => $state->{map_description},
