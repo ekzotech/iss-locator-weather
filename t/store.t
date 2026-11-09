@@ -18,5 +18,10 @@ my %observation = (
 is $store->record(\%observation), 1, 'one observation inserted';
 is_deeply $reader->db->query('SELECT * FROM observations WHERE observed_at = ?', 100)->hash,
   \%observation, 'observation is visible to a separate connection';
+is $store->record({%observation, latitude => 46}), 0, 'duplicate timestamp does not insert';
+is $reader->db->query('SELECT latitude FROM observations WHERE observed_at = ?', 100)->array->[0],
+  45, 'duplicate timestamp preserves original observation';
+eval { $store->record({%observation, observed_at => undef}) };
+like $@, qr/timestamp is required/, 'missing timestamp cannot create an implicit observation';
 
 done_testing;
