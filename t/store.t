@@ -5,6 +5,7 @@ use lib "$FindBin::Bin/../lib", "$FindBin::Bin/lib";
 use ISSTrackerTest 'new_tracker';
 use Mojo::SQLite;
 use Test::More;
+use Time::HiRes 'time';
 
 my $dir;
 my $tracker;
@@ -35,6 +36,21 @@ is_deeply $store->track_since(100), [
   {observed_at => 100, latitude => 45, longitude => 20},
   {observed_at => 101, latitude => 45, longitude => 20},
 ], 'track includes recent positions in chronological order';
+
+my $locked_db = $reader->db;
+$locked_db->query('BEGIN IMMEDIATE');
+my $writer_db = $tracker->app->sqlite->db;
+is $writer_db->dbh->sqlite_busy_timeout, 5000, 'application waits for SQLite locks';
+$writer_db->dbh->sqlite_busy_timeout(100);
+my $started = time;
+eval { $writer_db->query('UPDATE observations SET longitude = longitude WHERE observed_at = 100') };
+like $@, qr/database is locked/, 'a lock held past the deadline is reported';
+cmp_ok time - $started, '>=', 0.08, 'the writer waits before reporting contention';
+$locked_db->query('ROLLBACK');
+is $writer_db->query('UPDATE observations SET longitude = longitude WHERE observed_at = 100')->rows,
+  1, 'the write can be retried after the lock is released';
+undef $writer_db;
+undef $locked_db;
 
 my $saved_path = $tracker->app->config->{db_path};
 undef $reader;

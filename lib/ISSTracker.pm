@@ -12,6 +12,7 @@ has sqlite => sub {
   my $db_path = path($self->config->{db_path});
   $db_path->dirname->make_path;
   my $sqlite = Mojo::SQLite->new->from_filename($db_path->to_string);
+  $sqlite->on(connection => sub { $_[1]->sqlite_busy_timeout(5000) });
   $sqlite->migrations->name('iss_tracker')->from_file($root->child('migrations', 'observations.sql'))->migrate;
   return $sqlite;
 };
