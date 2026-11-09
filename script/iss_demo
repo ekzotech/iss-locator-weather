@@ -1,0 +1,25 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use ISSTracker;
+use Mojo::File qw(path tempdir);
+use Mojo::JSON 'decode_json';
+
+my $dir = tempdir;
+local $ENV{ISS_TRACKER_DB} = $dir->child('demo.sqlite')->to_string;
+my $app = ISSTracker->new;
+$app->defaults(demo => 1);
+
+my $fixtures = decode_json(path($FindBin::Bin, '..', 'data', 'demo.json')->slurp);
+my $now = int(time / 60) * 60;
+for my $fixture (@$fixtures) {
+  my %record = %$fixture;
+  $record{observed_at} = $now + delete $record{offset};
+  my $model_offset = delete $record{model_offset};
+  $record{weather_at} = $now + $model_offset if defined $model_offset;
+  $app->store->record(\%record);
+}
+
+$app->start('daemon', @ARGV ? @ARGV : ('-l', 'http://127.0.0.1:3001'));
