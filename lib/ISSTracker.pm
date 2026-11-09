@@ -2,8 +2,18 @@ package ISSTracker;
 use Mojo::Base 'Mojolicious';
 use Mojo::File 'path';
 use Mojo::Home;
+use Mojo::SQLite;
 
 my $root = path(__FILE__)->to_abs->dirname->dirname;
+
+has sqlite => sub {
+  my $self = shift;
+  my $db_path = path($self->config->{db_path});
+  $db_path->dirname->make_path;
+  my $sqlite = Mojo::SQLite->new->from_filename($db_path->to_string);
+  $sqlite->migrations->name('iss_tracker')->from_file($root->child('migrations', 'observations.sql'))->migrate;
+  return $sqlite;
+};
 
 sub startup {
   my $self = shift;
@@ -16,6 +26,7 @@ sub startup {
     : $root->child('var', 'observations.sqlite')->to_string;
   $self->config->{iss_url} = $ENV{ISS_TRACKER_ISS_URL} || 'http://api.open-notify.org/iss-now.json';
   $self->config->{weather_url} = $ENV{ISS_TRACKER_WEATHER_URL} || 'https://api.open-meteo.com/v1/forecast';
+  $self->sqlite;
 
   $self->routes->get('/health' => sub {
     shift->render(json => {status => 'ok'});
