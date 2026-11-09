@@ -6,6 +6,7 @@
     <h1>Погода под МКС</h1>
     <p class="intro">Где сейчас проходит Международная космическая станция и какая погода в точке под ней.</p>
     <p class="refresh-state empty-note" hidden>Связь с сервером прервалась. Показан последний загруженный снимок.</p>
+    <p class="sr-only refresh-announcement" role="status" aria-atomic="true"></p>
   </header>
   <div class="overview">
     %= include 'map'

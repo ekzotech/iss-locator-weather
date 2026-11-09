@@ -1,4 +1,4 @@
-<section id="snapshot" class="panel snapshot" aria-labelledby="snapshot-title">
+<section id="snapshot" class="panel snapshot" aria-labelledby="snapshot-title" data-observed-at="<%= $latest ? $latest->{observed_at} : '' %>">
   <p class="eyebrow">Снимок орбиты</p>
   <h2 id="snapshot-title">Последний пролёт</h2>
   % if ($latest) {

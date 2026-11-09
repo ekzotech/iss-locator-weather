@@ -21,6 +21,7 @@ $web->get_ok('/')->status_is(200)
   ->text_is('main h1', 'Погода под МКС')
   ->text_is('.status--waiting', 'Ожидаем данные')
   ->element_exists('.history-empty')
+  ->element_exists('.refresh-announcement[role="status"][aria-atomic="true"]')
   ->element_exists('svg.world-map[viewbox="0 0 720 360"] path.map-land[d]')
   ->element_exists('body > footer');
 

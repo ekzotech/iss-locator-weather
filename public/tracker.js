@@ -2,6 +2,7 @@
 
 const dashboard = document.querySelector('[data-dashboard-url]');
 const refreshState = dashboard.querySelector('.refresh-state');
+const announcement = dashboard.querySelector('.refresh-announcement');
 const historyList = dashboard.querySelector('.history-list');
 const more = dashboard.querySelector('.history-more');
 const historyFeedback = dashboard.querySelector('.history-feedback');
@@ -83,7 +84,11 @@ function updateDashboard(data) {
     throw new Error('Invalid dashboard fragments');
   }
 
-  dashboard.querySelector('#snapshot').replaceWith(snapshot);
+  const previousSnapshot = dashboard.querySelector('#snapshot');
+  const newObservation = snapshot.dataset.observedAt && snapshot.dataset.observedAt !== previousSnapshot.dataset.observedAt;
+  const observationTime = snapshot.querySelector('.snapshot-time')?.textContent;
+  if (newObservation && !observationTime) throw new Error('Invalid observation time');
+  previousSnapshot.replaceWith(snapshot);
   if (!browsingOlder && !loadingOlder) {
     historyList.replaceChildren(rows);
     olderCursor = data.next_before;
@@ -94,13 +99,19 @@ function updateDashboard(data) {
   dashboard.querySelector('.history-empty').hidden = historyList.children.length > 0;
   dashboard.querySelector('.map-overlay').replaceWith(overlay);
   dashboard.querySelector('#map-svg-description').textContent = data.map_description;
+  if (newObservation) {
+    announcement.textContent = 'Получено новое наблюдение. ' + observationTime;
+  }
+  return newObservation;
 }
 
 async function refresh() {
   try {
-    updateDashboard(await fetchJson(dashboard.dataset.dashboardUrl));
+    const updated = updateDashboard(await fetchJson(dashboard.dataset.dashboardUrl));
+    if (!refreshState.hidden && !updated) announcement.textContent = 'Связь с сервером восстановлена.';
     refreshState.hidden = true;
   } catch {
+    if (refreshState.hidden) announcement.textContent = refreshState.textContent;
     refreshState.hidden = false;
   } finally {
     window.setTimeout(refresh, refreshInterval);
