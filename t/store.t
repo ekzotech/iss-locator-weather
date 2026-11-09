@@ -15,6 +15,7 @@ my %observation = (
   observed_at => 100, latitude => 45, longitude => 20, weather_status => 'available',
   temperature_c => 0, cloud_cover => 15, weather_code => 1, weather_at => 90
 );
+is scalar($store->latest), undef, 'empty database has no latest observation';
 is $store->record(\%observation), 1, 'one observation inserted';
 is_deeply $reader->db->query('SELECT * FROM observations WHERE observed_at = ?', 100)->hash,
   \%observation, 'observation is visible to a separate connection';
@@ -23,5 +24,7 @@ is $reader->db->query('SELECT latitude FROM observations WHERE observed_at = ?',
   45, 'duplicate timestamp preserves original observation';
 eval { $store->record({%observation, observed_at => undef}) };
 like $@, qr/timestamp is required/, 'missing timestamp cannot create an implicit observation';
+$store->record({%observation, observed_at => 99});
+is_deeply scalar($store->latest), \%observation, 'latest is selected by observation time';
 
 done_testing;

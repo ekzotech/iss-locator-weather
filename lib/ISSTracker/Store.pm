@@ -14,4 +14,8 @@ ON CONFLICT(observed_at) DO NOTHING
 SQL
 }
 
+sub latest {
+  return shift->sqlite->db->query('SELECT * FROM observations ORDER BY observed_at DESC LIMIT 1')->hash;
+}
+
 1;
