@@ -32,6 +32,7 @@ has collector => sub {
 
 sub startup {
   my $self = shift;
+  push @{$self->commands->namespaces}, 'ISSTracker::Command';
   $self->home(Mojo::Home->new($root));
   $self->renderer->paths([$root->child('templates')]);
   $self->static->paths([$root->child('public')]);

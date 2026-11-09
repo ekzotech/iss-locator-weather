@@ -51,4 +51,12 @@ like $error, qr/HTTP 502/, 'a coordinate outage rejects the cycle';
 is $state->{weather_requests}, $weather_requests, 'coordinate outage skips weather';
 is_deeply $app->store->latest, $last_observation, 'latest saved position survives a coordinate outage';
 
+eval { $app->commands->run('collect', '--once') };
+like $@, qr/Collection failed:.*HTTP 502/, 'one-shot command reports a failure to its caller';
+delete $state->{iss_status};
+delete $state->{weather_status};
+eval { $app->commands->run('collect', '--once') };
+is $@, '', 'one-shot command exits normally when collection succeeds';
+is $app->store->latest->{observed_at}, $state->{iss}{timestamp}, 'one-shot command persists the next position';
+
 done_testing;
