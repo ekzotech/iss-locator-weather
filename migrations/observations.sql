@@ -26,3 +26,10 @@ END;
 -- 2 down
 DROP TRIGGER observations_coordinates_update;
 DROP TRIGGER observations_coordinates_insert;
+
+-- 3 up
+ALTER TABLE observations ADD COLUMN weather_status TEXT NOT NULL DEFAULT 'unavailable'
+  CHECK (weather_status IN ('available', 'water', 'unavailable'));
+
+-- 3 down
+ALTER TABLE observations DROP COLUMN weather_status;

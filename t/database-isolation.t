@@ -26,4 +26,13 @@ for my $coordinates ([91, 0], [0, -181], ['invalid', 0]) {
 eval { $first_db->query('UPDATE observations SET longitude = 181 WHERE observed_at = 100') };
 like $@, qr/coordinates out of range/, 'invalid update is rejected';
 
+my $weather_status = sub {
+  $first_db->query('SELECT weather_status FROM observations WHERE observed_at = 100')->array->[0];
+};
+is $weather_status->(), 'unavailable', 'weather defaults to unavailable';
+$first_db->query('UPDATE observations SET weather_status = ? WHERE observed_at = 100', 'water');
+is $weather_status->(), 'water', 'water status is preserved';
+eval { $first_db->query('UPDATE observations SET weather_status = ? WHERE observed_at = 100', 'unknown') };
+like $@, qr/CHECK constraint failed/, 'unknown weather status is rejected';
+
 done_testing;
