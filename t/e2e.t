@@ -66,4 +66,21 @@ subtest 'weather outage and recovery are visible as separate passes' => sub {
     ->element_exists_not('.history-row:nth-child(2) .history-weather');
 };
 
+subtest 'the dashboard remains available during a coordinate outage' => sub {
+  my $last_timestamp = $state->{iss}{timestamp};
+  my $weather_requests = $state->{weather_requests};
+  $state->{iss}{timestamp} += 60;
+  $state->{iss_status} = 502;
+  my ($inserted, $error) = await_p($app->collector->collect_p);
+  is $inserted, undef, 'no new pass is inserted';
+  like $error, qr/HTTP 502/, 'collector reports the coordinate outage';
+  is $state->{weather_requests}, $weather_requests, 'no weather request follows a coordinate outage';
+  $web->get_ok('/health')->status_is(200);
+  $web->get_ok('/')->status_is(200)
+    ->text_is('#snapshot .snapshot-coordinates', '39.50°, -3.30°')
+    ->text_is('#snapshot .snapshot-temperature', '8.5 °C')
+    ->element_exists('#snapshot[data-observed-at="' . $last_timestamp . '"]')
+    ->element_count_is('.history-row', 4);
+};
+
 done_testing;
