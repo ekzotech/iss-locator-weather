@@ -1,6 +1,6 @@
 % layout 'default';
 % title 'Орбита МКС — положение и погода';
-<main class="dashboard" id="main" data-dashboard-url="<%= url_for 'dashboard_data' %>">
+<main class="dashboard" id="main" data-dashboard-url="<%= url_for 'dashboard_data' %>" data-history-url="<%= url_for 'history_data' %>">
   <header class="page-heading">
     <p class="eyebrow">МКС / Земля</p>
     <h1>Погода под МКС</h1>
@@ -15,8 +15,10 @@
     <p class="eyebrow">Журнал наблюдений</p>
     <h2 id="history-title">История пролётов</h2>
     <p class="empty-note history-empty"<%== @$observations ? ' hidden' : '' %>>Наблюдения появятся после первого пролёта.</p>
-    <ol class="history-list">
+    <ol class="history-list" id="history-list">
       %= include 'history_rows', observations => $observations
     </ol>
+    <button type="button" class="history-more" aria-controls="history-list" data-before="<%= $next_before // '' %>" hidden>Показать более ранние пролёты</button>
+    <p class="empty-note history-feedback" role="status"></p>
   </section>
 </main>

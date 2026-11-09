@@ -153,6 +153,22 @@ h2 { font-size: clamp(1.65rem, 5.5vw, 2.35rem); }
 .history-position, .history-weather { display: grid; gap: 0.1rem; }
 .history-weather { color: var(--muted); font-size: 0.83rem; }
 .history-weather strong { color: var(--ink); font-size: 0.95rem; }
+.history-feedback:empty { display: none; }
+
+.history-more {
+  min-height: 2.75rem;
+  margin-top: 1rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--ink);
+  border-radius: 6px;
+  background: var(--ink);
+  color: white;
+  font: 600 0.85rem/1.4 var(--sans);
+  cursor: pointer;
+}
+
+.history-more[aria-disabled="true"] { cursor: default; opacity: 0.72; }
+:focus-visible { outline: 2px solid var(--sage-ink); outline-offset: 4px; }
 
 .map-panel { margin: 0; }
 .map-caption { margin-bottom: 1rem; }

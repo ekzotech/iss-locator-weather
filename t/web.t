@@ -44,6 +44,8 @@ $web->get_ok('/api/history?limit=1')->status_is(200)
   ->json_is('/observations/0/display/status', 'Погода недоступна');
 $web->get_ok('/api/history?limit=1&before=1704067260')->status_is(200)
   ->json_is('/observations/0/observed_at', 1704067200)->json_is('/next_before', undef);
+$web->get_ok('/api/history?limit=1&before=1704067260&view=html')->status_is(200)
+  ->json_like('/history_rows', qr/data-observed-at="1704067200"/)->json_is('/next_before', undef);
 for my $query ('limit=-1', 'limit=0', 'limit=101', 'limit=1.5', 'before=tomorrow', 'before=253402300800') {
   $web->get_ok("/api/history?$query")->status_is(400)->json_has('/error');
 }

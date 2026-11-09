@@ -55,13 +55,23 @@ sub startup {
     my ($c, $until) = @_;
     return $c->app->store->track_recent(TRACK_WINDOW, $until);
   });
+  $self->helper(history_page => sub {
+    my ($c, $limit, $before) = @_;
+    my $rows = $c->app->store->history($limit + 1, $before);
+    my $next;
+    if (@$rows > $limit) {
+      pop @$rows;
+      $next = $rows->[-1]{observed_at};
+    }
+    return {observations => [map { view_observation($_) } @$rows], next_before => $next};
+  });
   $self->helper(dashboard_state => sub {
     my $c = shift;
-    my @observations = map { view_observation($_) } @{$c->app->store->history(20)};
-    my $latest = $observations[0];
+    my $page = $c->history_page(20);
+    my $latest = $page->{observations}[0];
     return {
+      %$page,
       latest => $latest,
-      observations => \@observations,
       overlay => map_overlay($latest, $latest ? $c->track_points($latest->{observed_at}) : []),
       map_description => $latest ? 'Последняя точка: ' . $latest->{display}{coordinates} : 'Последняя точка пока неизвестна.',
     };
@@ -89,6 +99,7 @@ sub startup {
       history_rows => $c->render_to_string(template => 'history_rows', observations => $state->{observations})->to_string,
       map_overlay => $c->render_to_string(template => 'map_overlay', overlay => $state->{overlay})->to_string,
       map_description => $state->{map_description},
+      next_before => $state->{next_before},
     });
   })->name('dashboard_data');
   $self->routes->get('/api/latest' => sub {
@@ -103,14 +114,15 @@ sub startup {
       unless $limit =~ /\A[1-9][0-9]{0,2}\z/ && $limit <= 100;
     return $c->render(status => 400, json => {error => 'before must be a Unix timestamp'})
       if defined($before) && ($before !~ /\A[0-9]{1,12}\z/ || $before > 253402300799);
-    my $observations = $c->app->store->history($limit + 1, $before);
-    my $next;
-    if (@$observations > $limit) {
-      pop @$observations;
-      $next = $observations->[-1]{observed_at};
+    my $page = $c->history_page($limit, $before);
+    if (($c->param('view') // '') eq 'html') {
+      return $c->render(json => {
+        history_rows => $c->render_to_string(template => 'history_rows', observations => $page->{observations})->to_string,
+        next_before => $page->{next_before},
+      });
     }
-    $c->render(json => {observations => [map { view_observation($_) } @$observations], next_before => $next});
-  });
+    $c->render(json => $page);
+  })->name('history_data');
   $self->routes->get('/api/track' => sub {
     my $c = shift;
     $c->render(json => {points => $c->track_points});
