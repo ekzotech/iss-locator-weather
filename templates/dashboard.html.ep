@@ -7,6 +7,7 @@
     <p class="intro">Где сейчас проходит Международная космическая станция и какая погода в точке под ней.</p>
   </header>
   <div class="overview">
+    %= include 'map'
     %= include 'snapshot', latest => $latest
   </div>
   <section id="history" class="history" aria-labelledby="history-title">

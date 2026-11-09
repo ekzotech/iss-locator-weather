@@ -1,0 +1,7 @@
+<figure class="panel map-panel" aria-labelledby="map-title">
+  <figcaption class="map-caption">
+    <p class="eyebrow">Траектория</p>
+    <h2 id="map-title">Карта пролёта</h2>
+  </figcaption>
+  <div class="map-frame"></div>
+</figure>

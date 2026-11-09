@@ -153,3 +153,31 @@ h2 { font-size: clamp(1.65rem, 5.5vw, 2.35rem); }
 .history-position, .history-weather { display: grid; gap: 0.1rem; }
 .history-weather { color: var(--muted); font-size: 0.83rem; }
 .history-weather strong { color: var(--ink); font-size: 0.95rem; }
+
+.map-panel { margin: 0; }
+.map-caption { margin-bottom: 1rem; }
+
+.map-frame {
+  aspect-ratio: 2;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #edf1ee;
+}
+
+@media (min-width: 50rem) {
+  .masthead, .dashboard, .site-footer { width: min(100% - 4rem, 71rem); }
+  .page-heading { padding-block: 3.9rem 2rem; }
+  .overview { grid-template-columns: minmax(0, 2.15fr) minmax(0, 1fr); gap: 1rem; }
+  .panel { padding: 1.45rem; }
+  .history { margin-top: 3.4rem; }
+
+  .history-row {
+    grid-template-columns: minmax(12rem, 1fr) minmax(0, 1fr) minmax(9rem, auto);
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem;
+  }
+
+  .history-row .status { grid-column: 3; justify-self: end; }
+}
