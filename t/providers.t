@@ -27,6 +27,12 @@ $mock->routes->get('/weather' => sub {
   $weather_query = $c->req->url->query->to_hash;
   $c->render(json => $weather);
 });
+$mock->routes->get('/weather-api-error' => sub {
+  shift->render(json => {%$weather, error => true, reason => 'Invalid request'});
+});
+$mock->routes->get('/weather-partial' => sub {
+  shift->render(json => {current => {temperature_2m => 5, cloud_cover => 1, weather_code => 0}});
+});
 my $http = Test::Mojo->new($mock);
 $providers->ua($http->ua)->iss_url('/iss');
 my ($result, $error);
@@ -89,5 +95,15 @@ for my $cloud_cover (-1, 101) {
 }
 eval { $providers->parse_weather({current => {temperature_2m => 'NaN'}}) };
 like $@, qr/Invalid Open-Meteo temperature/, 'nonfinite temperature is rejected';
+
+for my $case (
+  ['/weather-api-error', qr/reported an API error/],
+  ['/weather-partial', qr/Invalid Open-Meteo model time/],
+) {
+  my ($url, $expected) = @$case;
+  $error = undef;
+  $providers->weather_url($url)->weather_p(-45.5, 0)->catch(sub { $error = shift })->wait;
+  like $error, $expected, "rejects $url instead of returning partial observations";
+}
 
 done_testing;

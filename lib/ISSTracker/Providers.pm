@@ -29,7 +29,9 @@ sub weather_p {
 
 sub parse_weather {
   my ($self, $payload) = @_;
-  die 'Invalid Open-Meteo current conditions' unless ref($payload) eq 'HASH' && ref($payload->{current}) eq 'HASH';
+  die 'Invalid Open-Meteo response' unless ref($payload) eq 'HASH';
+  die 'Open-Meteo reported an API error' if $payload->{error};
+  die 'Invalid Open-Meteo current conditions' unless ref($payload->{current}) eq 'HASH';
   my ($temperature, $cloud_cover, $code, $time) = @{$payload->{current}}{qw(temperature_2m cloud_cover weather_code time)};
   die 'Invalid Open-Meteo temperature' unless _finite_number($temperature);
   die 'Invalid Open-Meteo cloud cover'
