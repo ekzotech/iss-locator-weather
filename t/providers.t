@@ -68,6 +68,10 @@ is_deeply $weather_query, {
   latitude => '-45.5', longitude => '0', current => 'temperature_2m,cloud_cover,weather_code',
   temperature_unit => 'celsius', timeformat => 'unixtime', timezone => 'UTC', cell_selection => 'nearest'
 }, 'weather request sends the complete point and model parameters';
-is_deeply $result, $weather, 'weather response is received';
+is_deeply $result, {temperature_c => -1.5}, 'negative temperature is normalized';
+is_deeply $providers->parse_weather({current => {temperature_2m => '0'}}),
+  {temperature_c => 0}, 'zero temperature is normalized';
+eval { $providers->parse_weather({current => {temperature_2m => 'NaN'}}) };
+like $@, qr/Invalid Open-Meteo temperature/, 'nonfinite temperature is rejected';
 
 done_testing;

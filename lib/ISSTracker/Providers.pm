@@ -24,7 +24,15 @@ sub weather_p {
     latitude => $latitude, longitude => $longitude, current => 'temperature_2m,cloud_cover,weather_code',
     temperature_unit => 'celsius', timeformat => 'unixtime', timezone => 'UTC', cell_selection => 'nearest'
   );
-  return $self->_get_json_p($url);
+  return $self->_get_json_p($url)->then(sub { return $self->parse_weather(shift) });
+}
+
+sub parse_weather {
+  my ($self, $payload) = @_;
+  die 'Invalid Open-Meteo current conditions' unless ref($payload) eq 'HASH' && ref($payload->{current}) eq 'HASH';
+  my $temperature = $payload->{current}{temperature_2m};
+  die 'Invalid Open-Meteo temperature' unless _finite_number($temperature);
+  return {temperature_c => 0 + $temperature};
 }
 
 sub parse_iss {
