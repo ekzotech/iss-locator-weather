@@ -19,9 +19,15 @@ sub new_mock_tracker {
   my $mock = Mojolicious->new;
   my $state = {
     iss => {message => 'success', timestamp => 1704067260, iss_position => {latitude => '48.85', longitude => '2.35'}},
+    weather => {current => {temperature_2m => 0, cloud_cover => 25, weather_code => 1, time => 1704067200}},
+    weather_requests => 0,
   };
   $mock->routes->get('/iss' => sub { shift->render(json => $state->{iss}) });
-  $tracker->app->providers->ua(Test::Mojo->new($mock)->ua)->iss_url('/iss');
+  $mock->routes->get('/weather' => sub {
+    ++$state->{weather_requests};
+    shift->render(json => $state->{weather});
+  });
+  $tracker->app->providers->ua(Test::Mojo->new($mock)->ua)->iss_url('/iss')->weather_url('/weather');
   return ($tracker, $dir, $state);
 }
 

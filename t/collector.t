@@ -18,4 +18,11 @@ is_deeply $app->store->latest, {
   weather_code => undef, weather_at => undef,
 }, 'mock ISS response is persisted in SQLite';
 
+$state->{iss}{timestamp} += 60;
+$state->{iss}{iss_position} = {latitude => 0, longitude => -30};
+($inserted, $error) = await_p($app->collector->collect_p);
+is $error, undef, 'collection succeeds over water';
+is $app->store->latest->{weather_status}, 'water', 'the ocean position is recorded';
+is $state->{weather_requests}, 0, 'the water cycle skips the weather endpoint';
+
 done_testing;
