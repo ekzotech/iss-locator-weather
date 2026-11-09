@@ -32,7 +32,7 @@ is_deeply [map { $_->{observed_at} } @{$store->history(2)}], [101, 100],
   'history is newest first and respects the limit';
 is_deeply [map { $_->{observed_at} } @{$store->history(2, 100)}], [99],
   'history cursor excludes the previous page';
-is_deeply $store->track_since(100), [
+is_deeply $store->track_recent(1), [
   {observed_at => 100, latitude => 45, longitude => 20},
   {observed_at => 101, latitude => 45, longitude => 20},
 ], 'track includes recent positions in chronological order';

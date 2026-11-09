@@ -8,6 +8,8 @@ use ISSTracker::Providers;
 use ISSTracker::Land;
 use ISSTracker::Collector;
 
+use constant TRACK_WINDOW => 2 * 60 * 60;
+
 my $root = path(__FILE__)->to_abs->dirname->dirname;
 
 has sqlite => sub {
@@ -45,6 +47,7 @@ sub startup {
   $self->config->{iss_url} = $ENV{ISS_TRACKER_ISS_URL} || 'http://api.open-notify.org/iss-now.json';
   $self->config->{weather_url} = $ENV{ISS_TRACKER_WEATHER_URL} || 'https://api.open-meteo.com/v1/forecast';
   $self->sqlite;
+  $self->helper(track_points => sub { shift->app->store->track_recent(TRACK_WINDOW) });
 
   $self->routes->get('/health' => sub {
     shift->render(json => {status => 'ok'});
@@ -68,6 +71,10 @@ sub startup {
       $next = $observations->[-1]{observed_at};
     }
     $c->render(json => {observations => $observations, next_before => $next});
+  });
+  $self->routes->get('/api/track' => sub {
+    my $c = shift;
+    $c->render(json => {points => $c->track_points});
   });
 }
 

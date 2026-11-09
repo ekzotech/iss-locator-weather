@@ -34,12 +34,13 @@ sub history {
   return $self->sqlite->db->query("$sql ORDER BY observed_at DESC LIMIT ?", @bind, $limit)->hashes->to_array;
 }
 
-sub track_since {
-  my ($self, $since) = @_;
-  return $self->sqlite->db->query(
-    'SELECT observed_at, latitude, longitude FROM observations WHERE observed_at >= ? ORDER BY observed_at',
-    $since
-  )->hashes->to_array;
+sub track_recent {
+  my ($self, $window) = @_;
+  return $self->sqlite->db->query(<<'SQL', $window)->hashes->to_array;
+SELECT observed_at, latitude, longitude FROM observations
+WHERE observed_at >= (SELECT MAX(observed_at) FROM observations) - ?
+ORDER BY observed_at
+SQL
 }
 
 1;

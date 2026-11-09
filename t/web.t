@@ -11,6 +11,7 @@ my $web;
 my $store = $web->app->store;
 
 $web->get_ok('/api/latest')->status_is(200)->json_is({observation => undef});
+$web->get_ok('/api/track')->status_is(200)->json_is({points => []});
 $store->record({observed_at => 1704067260, latitude => 48.85, longitude => 2.35, weather_status => 'unavailable'});
 $web->get_ok('/api/latest')->status_is(200)
   ->json_is('/observation/observed_at', 1704067260)
@@ -25,5 +26,13 @@ $web->get_ok('/api/history?limit=1&before=1704067260')->status_is(200)
 for my $query ('limit=-1', 'limit=0', 'limit=101', 'limit=1.5', 'before=tomorrow', 'before=253402300800') {
   $web->get_ok("/api/history?$query")->status_is(400)->json_has('/error');
 }
+
+$store->record({observed_at => 1704060059, latitude => 0, longitude => -30, weather_status => 'water'});
+$store->record({observed_at => 1704060060, latitude => 0, longitude => -29, weather_status => 'water'});
+$web->get_ok('/api/track')->status_is(200)->json_is('/points', [
+  {observed_at => 1704060060, latitude => 0, longitude => -29},
+  {observed_at => 1704067200, latitude => 48.7, longitude => 2.1},
+  {observed_at => 1704067260, latitude => 48.85, longitude => 2.35},
+]);
 
 done_testing;
