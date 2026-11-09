@@ -1,6 +1,7 @@
 package ISSTracker::Runner;
 use Mojo::Base -base;
 use Mojo::IOLoop;
+use Mojo::Promise;
 
 has [qw(collector log)];
 has loop => sub { Mojo::IOLoop->singleton };
@@ -18,7 +19,8 @@ sub start {
 sub _tick {
   my $self = shift;
   return $self->_pending if $self->_pending;
-  my $pending = $self->collector->collect_p
+  my $work = eval { $self->collector->collect_p } // Mojo::Promise->reject($@);
+  my $pending = $work
     ->catch(sub { $self->log->error('Collection cycle failed') })
     ->finally(sub { $self->_pending(undef) });
   $self->_pending($pending);

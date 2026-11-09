@@ -27,7 +27,9 @@ has providers => sub {
 has land => sub { ISSTracker::Land->from_file($root->child('data', 'ne_110m_land.geojson')) };
 has collector => sub {
   my $self = shift;
-  return ISSTracker::Collector->new(providers => $self->providers, store => $self->store, land => $self->land);
+  return ISSTracker::Collector->new(
+    providers => $self->providers, store => $self->store, land => $self->land, log => $self->log
+  );
 };
 
 sub startup {

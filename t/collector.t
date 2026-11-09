@@ -9,6 +9,11 @@ my $dir;
 my ($tracker, $state);
 ($tracker, $dir, $state) = new_mock_tracker();
 my $app = $tracker->app;
+my @events;
+$app->log->level('info')->unsubscribe('message')->on(message => sub {
+  my ($log, $level, @messages) = @_;
+  push @events, @messages;
+});
 my ($inserted, $error) = await_p($app->collector->collect_p);
 is $error, undef, 'one collection cycle succeeds';
 is $inserted, 1, 'one observation is inserted';
@@ -58,5 +63,8 @@ delete $state->{weather_status};
 eval { $app->commands->run('collect', '--once') };
 is $@, '', 'one-shot command exits normally when collection succeeds';
 is $app->store->latest->{observed_at}, $state->{iss}{timestamp}, 'one-shot command persists the next position';
+is_deeply \@events, [
+  'Open-Meteo unavailable', 'Open Notify unavailable', 'Open Notify recovered', 'Open-Meteo recovered',
+], 'logs provider outage and recovery transitions without response bodies';
 
 done_testing;
