@@ -7,6 +7,7 @@ sub collect_p {
   my $self = shift;
   return $self->providers->iss_position_p->then(sub {
     my $point = shift;
+    return 0 if $self->store->has_observation($point->{observed_at});
     my @coordinates = @$point{qw(latitude longitude)};
     return $self->store->record({%$point, weather_status => 'water'}) unless $self->land->contains(@coordinates);
     return $self->providers->weather_p(@coordinates)->then(sub {

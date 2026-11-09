@@ -18,6 +18,10 @@ is_deeply $app->store->latest, {
   weather_code => 1, weather_at => 1704067200,
 }, 'ISS position and model weather are persisted with independent timestamps';
 is $state->{weather_requests}, 1, 'land cycle fetches weather exactly once';
+($inserted, $error) = await_p($app->collector->collect_p);
+is $error, undef, 'a duplicate timestamp is a successful no-op';
+is $inserted, 0, 'duplicate timestamp is skipped';
+is $state->{weather_requests}, 1, 'duplicate timestamp does not request weather again';
 
 $state->{iss}{timestamp} += 60;
 $state->{iss}{iss_position} = {latitude => 0, longitude => -30};
