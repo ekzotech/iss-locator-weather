@@ -19,10 +19,14 @@ sub latest {
 }
 
 sub history {
-  my ($self, $limit) = @_;
-  return $self->sqlite->db->query(
-    'SELECT * FROM observations ORDER BY observed_at DESC LIMIT ?', $limit
-  )->hashes->to_array;
+  my ($self, $limit, $before) = @_;
+  my $sql = 'SELECT * FROM observations';
+  my @bind;
+  if (defined $before) {
+    $sql .= ' WHERE observed_at < ?';
+    push @bind, $before;
+  }
+  return $self->sqlite->db->query("$sql ORDER BY observed_at DESC LIMIT ?", @bind, $limit)->hashes->to_array;
 }
 
 1;

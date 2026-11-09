@@ -29,5 +29,7 @@ is_deeply scalar($store->latest), \%observation, 'latest is selected by observat
 $store->record({%observation, observed_at => 101});
 is_deeply [map { $_->{observed_at} } @{$store->history(2)}], [101, 100],
   'history is newest first and respects the limit';
+is_deeply [map { $_->{observed_at} } @{$store->history(2, 100)}], [99],
+  'history cursor excludes the previous page';
 
 done_testing;
