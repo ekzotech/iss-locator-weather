@@ -20,5 +20,9 @@ my $rectangle = [[0, 0], [10, 0], [10, 5], [0, 5], [0, 0]];
 my $region = ISSTracker::Land->new(polygons => [[$rectangle]]);
 ok $region->contains(2, 8), 'point inside the exterior ring is on land';
 ok !$region->contains(8, 2), 'point outside the exterior ring is excluded';
+my $lake = [[2, 1], [4, 1], [4, 3], [2, 3], [2, 1]];
+my $with_lake = ISSTracker::Land->new(polygons => [[$rectangle, $lake]]);
+ok !$with_lake->contains(2, 3), 'an interior hole is water';
+ok $with_lake->contains(2, 8), 'the area outside the hole is still land';
 
 done_testing;

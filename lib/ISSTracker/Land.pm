@@ -49,7 +49,10 @@ sub _valid_ring {
 sub contains {
   my ($self, $latitude, $longitude) = @_;
   for my $polygon (@{$self->polygons}) {
-    return 1 if _ring_contains($polygon->[0], $longitude, $latitude);
+    my ($exterior, @holes) = @$polygon;
+    next unless _ring_contains($exterior, $longitude, $latitude);
+    next if grep { _ring_contains($_, $longitude, $latitude) } @holes;
+    return 1;
   }
   return 0;
 }
