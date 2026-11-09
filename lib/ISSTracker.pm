@@ -3,6 +3,7 @@ use Mojo::Base 'Mojolicious';
 use Mojo::File 'path';
 use Mojo::Home;
 use Mojo::SQLite;
+use ISSTracker::Store;
 
 my $root = path(__FILE__)->to_abs->dirname->dirname;
 
@@ -14,6 +15,7 @@ has sqlite => sub {
   $sqlite->migrations->name('iss_tracker')->from_file($root->child('migrations', 'observations.sql'))->migrate;
   return $sqlite;
 };
+has store => sub { ISSTracker::Store->new(sqlite => shift->sqlite) };
 
 sub startup {
   my $self = shift;
