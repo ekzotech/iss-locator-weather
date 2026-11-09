@@ -11,11 +11,14 @@ use Test::More;
   package Local::Timer;
   use Mojo::Base -base;
   has [qw(interval callback)];
+  has [qw(removed stopped)];
   sub recurring {
     my ($self, $interval, $callback) = @_;
     $self->interval($interval)->callback($callback);
     return 'timer';
   }
+  sub remove { $_[0]->removed($_[1])->callback(undef) }
+  sub stop { $_[0]->stopped(1) }
 }
 
 {
@@ -45,7 +48,14 @@ $collector->pending->resolve(1);
 $first_cycle->wait;
 my $second_cycle = $timer->callback->();
 is $collector->calls, 2, 'timer starts the next collection cycle';
+my $stale_tick = $timer->callback;
+$runner->stop;
+is $timer->removed, 'timer', 'shutdown removes the recurring timer';
+ok !$timer->stopped, 'shutdown waits for the active cycle';
+$stale_tick->();
+is $collector->calls, 2, 'a callback already queued cannot start another cycle';
 $collector->pending->resolve(1);
 $second_cycle->wait;
+ok $timer->stopped, 'loop stops once the active cycle has finished';
 
 done_testing;
