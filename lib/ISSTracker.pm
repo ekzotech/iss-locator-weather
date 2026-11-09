@@ -7,6 +7,7 @@ use ISSTracker::Store;
 use ISSTracker::Providers;
 use ISSTracker::Land;
 use ISSTracker::Collector;
+use ISSTracker::View 'view_observation';
 
 use constant TRACK_WINDOW => 2 * 60 * 60;
 
@@ -54,7 +55,7 @@ sub startup {
   });
   $self->routes->get('/api/latest' => sub {
     my $c = shift;
-    $c->render(json => {observation => scalar $c->app->store->latest});
+    $c->render(json => {observation => view_observation(scalar $c->app->store->latest)});
   });
   $self->routes->get('/api/history' => sub {
     my $c = shift;
@@ -70,7 +71,7 @@ sub startup {
       pop @$observations;
       $next = $observations->[-1]{observed_at};
     }
-    $c->render(json => {observations => $observations, next_before => $next});
+    $c->render(json => {observations => [map { view_observation($_) } @$observations], next_before => $next});
   });
   $self->routes->get('/api/track' => sub {
     my $c = shift;

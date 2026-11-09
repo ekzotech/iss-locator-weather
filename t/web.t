@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use utf8;
 use FindBin;
 use lib "$FindBin::Bin/../lib", "$FindBin::Bin/lib";
 use ISSTrackerTest 'new_tracker';
@@ -16,11 +17,15 @@ $store->record({observed_at => 1704067260, latitude => 48.85, longitude => 2.35,
 $web->get_ok('/api/latest')->status_is(200)
   ->json_is('/observation/observed_at', 1704067260)
   ->json_is('/observation/latitude', 48.85)
-  ->json_is('/observation/longitude', 2.35);
+  ->json_is('/observation/longitude', 2.35)
+  ->json_is('/observation/display/observed_iso', '2024-01-01T00:01:00Z')
+  ->json_is('/observation/display/status', 'Погода недоступна');
 
 $store->record({observed_at => 1704067200, latitude => 48.7, longitude => 2.1, weather_status => 'unavailable'});
 $web->get_ok('/api/history?limit=1')->status_is(200)
-  ->json_is('/observations/0/observed_at', 1704067260)->json_is('/next_before', 1704067260);
+  ->json_is('/observations/0/observed_at', 1704067260)->json_is('/next_before', 1704067260)
+  ->json_is('/observations/0/display/observed_iso', '2024-01-01T00:01:00Z')
+  ->json_is('/observations/0/display/status', 'Погода недоступна');
 $web->get_ok('/api/history?limit=1&before=1704067260')->status_is(200)
   ->json_is('/observations/0/observed_at', 1704067200)->json_is('/next_before', undef);
 for my $query ('limit=-1', 'limit=0', 'limit=101', 'limit=1.5', 'before=tomorrow', 'before=253402300800') {
