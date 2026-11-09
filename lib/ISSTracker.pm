@@ -8,7 +8,7 @@ use ISSTracker::Providers;
 use ISSTracker::Land;
 use ISSTracker::Collector;
 use ISSTracker::View 'view_observation';
-use ISSTracker::Map qw(land_svg_path MAP_WIDTH MAP_HEIGHT);
+use ISSTracker::Map qw(land_svg_path map_overlay MAP_WIDTH MAP_HEIGHT);
 
 use constant TRACK_WINDOW => 2 * 60 * 60;
 
@@ -50,7 +50,10 @@ sub startup {
   $self->config->{iss_url} = $ENV{ISS_TRACKER_ISS_URL} || 'http://api.open-notify.org/iss-now.json';
   $self->config->{weather_url} = $ENV{ISS_TRACKER_WEATHER_URL} || 'https://api.open-meteo.com/v1/forecast';
   $self->sqlite;
-  $self->helper(track_points => sub { shift->app->store->track_recent(TRACK_WINDOW) });
+  $self->helper(track_points => sub {
+    my ($c, $until) = @_;
+    return $c->app->store->track_recent(TRACK_WINDOW, $until);
+  });
 
   $self->routes->get('/health' => sub {
     shift->render(json => {status => 'ok'});
@@ -63,6 +66,7 @@ sub startup {
       latest => $observations[0],
       observations => \@observations,
       land_path => $c->app->land_path,
+      overlay => map_overlay($observations[0], @observations ? $c->track_points($observations[0]{observed_at}) : []),
       map_width => MAP_WIDTH,
       map_height => MAP_HEIGHT,
     );

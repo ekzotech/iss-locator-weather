@@ -168,6 +168,23 @@ h2 { font-size: clamp(1.65rem, 5.5vw, 2.35rem); }
 .world-map { display: block; width: 100%; height: 100%; }
 .map-grid { fill: none; stroke: #dce4df; stroke-width: 1; }
 .map-land { fill: #d2ddd2; stroke: #a2b3a4; stroke-width: 0.8; }
+.map-track { fill: none; stroke: #39724d; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.map-marker-halo { fill: #346538; opacity: 0.22; }
+.map-marker { fill: #24543a; stroke: #fff; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+
+.map-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.map-key span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.map-key span::before { display: inline-block; background: #39724d; content: ""; }
+.map-key-marker::before { width: 0.45rem; height: 0.45rem; border-radius: 50%; }
+.map-key-track::before { width: 0.85rem; height: 2px; }
 
 @media (min-width: 50rem) {
   .masthead, .dashboard, .site-footer { width: min(100% - 4rem, 71rem); }

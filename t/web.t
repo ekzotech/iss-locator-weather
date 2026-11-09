@@ -27,6 +27,8 @@ $web->get_ok('/')->status_is(200)
   ->text_is('#snapshot h2', 'Последний пролёт')
   ->text_is('.status--unavailable', 'Погода недоступна')
   ->text_is('.snapshot-coordinates', '48.85°, 2.35°')
+  ->element_exists('.map-marker[cx="364.70"][cy="82.30"]')
+  ->text_is('#map-svg-description', 'Последняя точка: 48.85°, 2.35°')
   ->element_exists('.snapshot-time[datetime="2024-01-01T00:01:00Z"]');
 $web->get_ok('/api/latest')->status_is(200)
   ->json_is('/observation/observed_at', 1704067260)
@@ -66,6 +68,7 @@ $store->record({observed_at => 1704067380, latitude => 0, longitude => -30, weat
 $web->get_ok('/')->status_is(200)
   ->text_is('.status--water', 'Над водой')
   ->element_exists_not('.snapshot-temperature')
+  ->element_exists('polyline.map-track[points]')
   ->element_exists('.history-row:first-child[data-observed-at="1704067380"]')
   ->element_exists('.history-row:nth-child(2)[data-observed-at="1704067320"]')
   ->text_is('.history-row:nth-child(2) .history-weather strong', '0 °C');

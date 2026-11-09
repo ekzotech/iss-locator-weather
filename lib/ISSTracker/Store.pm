@@ -35,10 +35,11 @@ sub history {
 }
 
 sub track_recent {
-  my ($self, $window) = @_;
-  return $self->sqlite->db->query(<<'SQL', $window)->hashes->to_array;
+  my ($self, $window, $until) = @_;
+  return $self->sqlite->db->query(<<'SQL', $until, $window)->hashes->to_array;
+WITH anchor AS (SELECT COALESCE(?, MAX(observed_at)) AS latest FROM observations)
 SELECT observed_at, latitude, longitude FROM observations
-WHERE observed_at >= (SELECT MAX(observed_at) FROM observations) - ?
+WHERE observed_at BETWEEN (SELECT latest FROM anchor) - ? AND (SELECT latest FROM anchor)
 ORDER BY observed_at
 SQL
 }

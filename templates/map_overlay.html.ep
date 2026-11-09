@@ -1,0 +1,9 @@
+<g class="map-overlay" aria-hidden="true">
+  % for my $line (@{$overlay->{lines}}) {
+    <polyline class="map-track" points="<%= $line %>"/>
+  % }
+  % if (my $marker = $overlay->{marker}) {
+    <circle class="map-marker-halo" cx="<%= $marker->[0] %>" cy="<%= $marker->[1] %>" r="10"/>
+    <circle class="map-marker" cx="<%= $marker->[0] %>" cy="<%= $marker->[1] %>" r="5"/>
+  % }
+</g>

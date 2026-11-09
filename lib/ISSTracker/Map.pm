@@ -4,7 +4,7 @@ use warnings;
 use Exporter 'import';
 use List::Util 'min';
 
-our @EXPORT_OK = qw(distance_km project land_svg_path track_segments MAP_WIDTH MAP_HEIGHT);
+our @EXPORT_OK = qw(distance_km project land_svg_path track_segments map_overlay MAP_WIDTH MAP_HEIGHT);
 use constant { MAP_WIDTH => 720, MAP_HEIGHT => 360 };
 
 my $radians_per_degree = atan2(0, -1) / 180;
@@ -58,6 +58,15 @@ sub track_segments {
     push @{$segments[-1]}, $next;
   }
   return \@segments;
+}
+
+sub map_overlay {
+  my ($latest, $points) = @_;
+  my $segments = track_segments($points);
+  return {
+    marker => $latest ? [map { sprintf('%.2f', $_) } @{project(@$latest{qw(latitude longitude)})}] : undef,
+    lines => [map { join ' ', map { sprintf('%.2f,%.2f', @$_) } @$_ } grep { @$_ >= 2 } @$segments],
+  };
 }
 
 1;
