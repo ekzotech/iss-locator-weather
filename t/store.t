@@ -36,4 +36,16 @@ is_deeply $store->track_since(100), [
   {observed_at => 101, latitude => 45, longitude => 20},
 ], 'track includes recent positions in chronological order';
 
+my $saved_path = $tracker->app->config->{db_path};
+undef $reader;
+undef $store;
+undef $tracker;
+{
+  local $ENV{ISS_TRACKER_DB} = $saved_path;
+  my $restarted = ISSTracker->new;
+  is_deeply $restarted->store->history(3), [
+    {%observation, observed_at => 101}, \%observation, {%observation, observed_at => 99}
+  ], 'startup migrations preserve existing observations after reopening';
+}
+
 done_testing;
