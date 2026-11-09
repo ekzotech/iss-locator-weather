@@ -41,4 +41,29 @@ subtest 'land-to-ocean pass keeps both history rows' => sub {
     ->text_is('.history-row:nth-child(2) .history-weather strong', '0 °C');
 };
 
+subtest 'weather outage and recovery are visible as separate passes' => sub {
+  $state->{iss}{timestamp} += 60;
+  $state->{iss}{iss_position} = {latitude => '43.05', longitude => '-3.50'};
+  $state->{weather_status} = 503;
+  my ($inserted, $error) = await_p($app->collector->collect_p);
+  is $error, undef, 'weather outage does not reject the pass';
+  is $inserted, 1, 'coordinates are still stored';
+  $web->get_ok('/')->status_is(200)
+    ->text_is('#snapshot .status--unavailable', 'Погода недоступна')
+    ->element_exists_not('#snapshot .snapshot-temperature');
+
+  $state->{iss}{timestamp} += 60;
+  $state->{iss}{iss_position} = {latitude => '39.50', longitude => '-3.30'};
+  delete $state->{weather_status};
+  $state->{weather}{current}{temperature_2m} = 8.5;
+  ($inserted, $error) = await_p($app->collector->collect_p);
+  is $error, undef, 'weather provider recovers';
+  is $inserted, 1, 'the recovered pass is stored';
+  $web->get_ok('/')->status_is(200)
+    ->text_is('#snapshot .snapshot-temperature', '8.5 °C')
+    ->text_is('.history-row:first-child .status--available', 'Над сушей')
+    ->text_is('.history-row:nth-child(2) .status--unavailable', 'Погода недоступна')
+    ->element_exists_not('.history-row:nth-child(2) .history-weather');
+};
+
 done_testing;
