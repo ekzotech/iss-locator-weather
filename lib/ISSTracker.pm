@@ -4,6 +4,7 @@ use Mojo::File 'path';
 use Mojo::Home;
 use Mojo::SQLite;
 use ISSTracker::Store;
+use ISSTracker::Providers;
 
 my $root = path(__FILE__)->to_abs->dirname->dirname;
 
@@ -17,6 +18,7 @@ has sqlite => sub {
   return $sqlite;
 };
 has store => sub { ISSTracker::Store->new(sqlite => shift->sqlite) };
+has providers => sub { ISSTracker::Providers->new(iss_url => shift->config->{iss_url}) };
 
 sub startup {
   my $self = shift;
