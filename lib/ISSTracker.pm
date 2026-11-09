@@ -49,6 +49,10 @@ sub startup {
   $self->routes->get('/health' => sub {
     shift->render(json => {status => 'ok'});
   });
+  $self->routes->get('/api/latest' => sub {
+    my $c = shift;
+    $c->render(json => {observation => scalar $c->app->store->latest});
+  });
 }
 
 1;
