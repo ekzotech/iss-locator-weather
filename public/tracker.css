@@ -43,6 +43,7 @@ body {
 
 .masthead { border-bottom: 1px solid var(--line); }
 .site-footer { border-top: 1px solid var(--line); margin-top: 3rem; }
+.site-sources a { color: inherit; text-underline-offset: 0.15em; }
 
 .wordmark {
   display: inline-flex;

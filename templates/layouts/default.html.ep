@@ -16,7 +16,11 @@
     <%= content %>
     <footer class="site-footer">
       <span>Орбита МКС</span>
-      <span>Open Notify · Open-Meteo</span>
+      <span class="site-sources">
+        <a href="https://github.com/open-notify/Open-Notify-API">Open Notify</a> ·
+        <a href="https://open-meteo.com/">Open-Meteo</a> ·
+        <a href="https://www.naturalearthdata.com/">Natural Earth</a>
+      </span>
     </footer>
   </body>
 </html>
