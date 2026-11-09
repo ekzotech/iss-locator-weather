@@ -30,12 +30,16 @@ sub weather_p {
 sub parse_weather {
   my ($self, $payload) = @_;
   die 'Invalid Open-Meteo current conditions' unless ref($payload) eq 'HASH' && ref($payload->{current}) eq 'HASH';
-  my ($temperature, $cloud_cover, $code) = @{$payload->{current}}{qw(temperature_2m cloud_cover weather_code)};
+  my ($temperature, $cloud_cover, $code, $time) = @{$payload->{current}}{qw(temperature_2m cloud_cover weather_code time)};
   die 'Invalid Open-Meteo temperature' unless _finite_number($temperature);
   die 'Invalid Open-Meteo cloud cover'
     unless _finite_number($cloud_cover) && $cloud_cover >= 0 && $cloud_cover <= 100;
   die 'Invalid Open-Meteo weather code' unless _finite_number($code) && $code >= 0 && $code <= 99 && int($code) == $code;
-  return {temperature_c => 0 + $temperature, cloud_cover => 0 + $cloud_cover, weather_code => 0 + $code};
+  die 'Invalid Open-Meteo model time' unless _epoch_seconds($time);
+  return {
+    temperature_c => 0 + $temperature, cloud_cover => 0 + $cloud_cover,
+    weather_code => 0 + $code, weather_at => 0 + $time
+  };
 }
 
 sub parse_iss {
@@ -46,8 +50,7 @@ sub parse_iss {
   die 'Invalid ISS coordinates' unless _finite_number($latitude) && _finite_number($longitude)
     && abs($latitude) <= 90 && abs($longitude) <= 180;
   my $timestamp = $payload->{timestamp};
-  die 'Invalid ISS timestamp' unless _finite_number($timestamp)
-    && $timestamp >= 0 && $timestamp <= 253402300799 && int($timestamp) == $timestamp;
+  die 'Invalid ISS timestamp' unless _epoch_seconds($timestamp);
   return {latitude => 0 + $latitude, longitude => 0 + $longitude, observed_at => 0 + $timestamp};
 }
 
@@ -65,6 +68,11 @@ sub _get_json_p {
 sub _finite_number {
   my $value = shift;
   return !ref($value) && looks_like_number($value) && isfinite($value);
+}
+
+sub _epoch_seconds {
+  my $value = shift;
+  return _finite_number($value) && $value >= 0 && $value <= 253402300799 && int($value) == $value;
 }
 
 1;

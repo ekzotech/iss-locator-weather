@@ -21,7 +21,7 @@ $mock->routes->get('/iss-error' => sub { shift->render(status => 500, text => 'I
 $mock->routes->get('/iss-invalid' => sub { shift->render(text => '{') });
 $mock->routes->get('/iss-denied' => sub { shift->render(json => {%$position, message => 'failure'}) });
 my $weather_query;
-my $weather = {current => {temperature_2m => -1.5, cloud_cover => 25, weather_code => 1, time => 90}};
+my $weather = {current => {temperature_2m => -1.5, cloud_cover => 25, weather_code => 1, time => '1704067200'}};
 $mock->routes->get('/weather' => sub {
   my $c = shift;
   $weather_query = $c->req->url->query->to_hash;
@@ -68,11 +68,17 @@ is_deeply $weather_query, {
   latitude => '-45.5', longitude => '0', current => 'temperature_2m,cloud_cover,weather_code',
   temperature_unit => 'celsius', timeformat => 'unixtime', timezone => 'UTC', cell_selection => 'nearest'
 }, 'weather request sends the complete point and model parameters';
-is_deeply $result, {temperature_c => -1.5, cloud_cover => 25, weather_code => 1}, 'current weather is normalized';
+is_deeply $result, {temperature_c => -1.5, cloud_cover => 25, weather_code => 1, weather_at => 1704067200},
+  'current weather and model time are normalized';
+is scalar(gmtime($result->{weather_at})), 'Mon Jan  1 00:00:00 2024', 'model time represents the expected UTC instant';
 for my $cloud_cover (0, 100) {
-  is_deeply $providers->parse_weather({current => {temperature_2m => '0', cloud_cover => $cloud_cover, weather_code => '0'}}),
-    {temperature_c => 0, cloud_cover => $cloud_cover, weather_code => 0}, "accepts clear weather code and $cloud_cover percent cloud cover";
+  is_deeply $providers->parse_weather({current => {%{$weather->{current}}, temperature_2m => '0',
+    cloud_cover => $cloud_cover, weather_code => '0'}}),
+    {temperature_c => 0, cloud_cover => $cloud_cover, weather_code => 0, weather_at => 1704067200},
+    "accepts clear weather code and $cloud_cover percent cloud cover";
 }
+eval { $providers->parse_weather({current => {%{$weather->{current}}, time => 1704067200.5}}) };
+like $@, qr/Invalid Open-Meteo model time/, 'fractional model time is rejected';
 for my $code (undef, -1, 0.5, 100) {
   eval { $providers->parse_weather({current => {%{$weather->{current}}, weather_code => $code}}) };
   like $@, qr/Invalid Open-Meteo weather code/, 'invalid weather code is rejected';
