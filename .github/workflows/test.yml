@@ -1,0 +1,26 @@
+name: Perl tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install CPAN tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cpanminus libssl-dev
+      - name: Install dependencies
+        run: cpanm --mirror https://cpan.metacpan.org --mirror-only --local-lib .local --notest --installdeps .
+      - name: Run offline tests
+        run: prove -I.local/lib/perl5 -r t
