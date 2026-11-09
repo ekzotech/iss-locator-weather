@@ -4,7 +4,7 @@ use warnings;
 use Exporter 'import';
 use List::Util 'min';
 
-our @EXPORT_OK = qw(distance_km project track_segments MAP_WIDTH MAP_HEIGHT);
+our @EXPORT_OK = qw(distance_km project land_svg_path track_segments MAP_WIDTH MAP_HEIGHT);
 use constant { MAP_WIDTH => 720, MAP_HEIGHT => 360 };
 
 my $radians_per_degree = atan2(0, -1) / 180;
@@ -23,6 +23,18 @@ sub distance_km {
 sub project {
   my ($latitude, $longitude) = @_;
   return [($longitude + 180) * MAP_WIDTH / 360, (90 - $latitude) * MAP_HEIGHT / 180];
+}
+
+sub land_svg_path {
+  my $polygons = shift;
+  my @rings;
+  for my $polygon (@$polygons) {
+    for my $ring (@$polygon) {
+      my @positions = map { sprintf('%.2f,%.2f', @{project($_->[1], $_->[0])}) } @$ring;
+      push @rings, 'M' . join(' ', @positions) . 'Z';
+    }
+  }
+  return join '', @rings;
 }
 
 sub track_segments {

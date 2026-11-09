@@ -8,6 +8,7 @@ use ISSTracker::Providers;
 use ISSTracker::Land;
 use ISSTracker::Collector;
 use ISSTracker::View 'view_observation';
+use ISSTracker::Map qw(land_svg_path MAP_WIDTH MAP_HEIGHT);
 
 use constant TRACK_WINDOW => 2 * 60 * 60;
 
@@ -28,6 +29,7 @@ has providers => sub {
   return ISSTracker::Providers->new(iss_url => $config->{iss_url}, weather_url => $config->{weather_url});
 };
 has land => sub { ISSTracker::Land->from_file($root->child('data', 'ne_110m_land.geojson')) };
+has land_path => sub { land_svg_path(shift->land->polygons) };
 has collector => sub {
   my $self = shift;
   return ISSTracker::Collector->new(
@@ -60,6 +62,9 @@ sub startup {
       template => 'dashboard',
       latest => $observations[0],
       observations => \@observations,
+      land_path => $c->app->land_path,
+      map_width => MAP_WIDTH,
+      map_height => MAP_HEIGHT,
     );
   })->name('dashboard');
   $self->routes->get('/api/latest' => sub {
