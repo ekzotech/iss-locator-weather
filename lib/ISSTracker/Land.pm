@@ -46,4 +46,25 @@ sub _valid_ring {
   return $ring->[0][0] == $ring->[-1][0] && $ring->[0][1] == $ring->[-1][1];
 }
 
+sub contains {
+  my ($self, $latitude, $longitude) = @_;
+  for my $polygon (@{$self->polygons}) {
+    return 1 if _ring_contains($polygon->[0], $longitude, $latitude);
+  }
+  return 0;
+}
+
+sub _ring_contains {
+  my ($ring, $x, $y) = @_;
+  my $inside = 0;
+  for my $i (1 .. $#$ring) {
+    my ($x1, $y1) = @{$ring->[$i - 1]};
+    my ($x2, $y2) = @{$ring->[$i]};
+    next if ($y1 > $y) == ($y2 > $y);
+    my $crossing = $x1 + ($y - $y1) * ($x2 - $x1) / ($y2 - $y1);
+    $inside = !$inside if $x < $crossing;
+  }
+  return $inside;
+}
+
 1;
